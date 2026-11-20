@@ -1,0 +1,29 @@
+# Geospatial & Census datasets
+*.shp
+*.shx
+*.dbf
+*.prj
+*.cpg
+*.gpkg
+*.geojson
+*.zip
+*.csv
+*.rds
+*.rda
+data/
+data_cache/
+
+# Outputs, plots, and logs
+*.png
+*.pdf
+*.html
+*.out
+*.err
+outputs/
+logs/
+
+# R & OS artifacts
+.Rproj.user/
+.Rhistory
+.RData
+.env
