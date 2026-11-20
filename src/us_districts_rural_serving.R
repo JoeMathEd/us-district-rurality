@@ -3,6 +3,13 @@
 # Created: Nov 2024, updated Oct 2026
 # Last Run: 10/30/2026
 
+args <- commandArgs(trailingOnly = TRUE)
+cache_dir  <- if (length(args) >= 1) args[1] else "data_cache"
+output_dir <- if (length(args) >= 2) args[2] else "outputs"
+
+dir.create(cache_dir, recursive = TRUE, showWarnings = FALSE)
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+
 # configuration ----
 # R packages (run install.packages("<packagename>") if needed)
 library(tidyverse)
@@ -20,6 +27,8 @@ library(ggrepel)
 
 
 options(tigris_use_cache = TRUE)
+options(tigris_cache_dir = cache_dir)
+
 sf_use_s2(TRUE) # Ensure valid spherical geometry operations
 
 # set the year to retrieve data (see ?get_acs for year options)
@@ -283,7 +292,7 @@ clean_district_name <- function(names) {
     str_replace_all("\\b\\d{1,4}\\b", "") |> 
     
     str_replace_all(
-      "(?i)\\b(Public|Community|Consolidated|Joint|Jt|Unified|Union|Elementary|High|Secondary|Exempted Village|Special|Independent|Charter)\\b", 
+      "(?i)\\b(Public|Community|Consolidated|Local|Joint|Jt|Unified|Union|Elementary|High|Secondary|Exempted Village|Special|Independent|Charter)\\b", 
       ""
     ) |> 
     str_replace_all(
@@ -330,11 +339,16 @@ districts_complete_sf <- districts_complete_sf |>
 
 
 # SET UP FOLDERS FOR THE MAPS
-folder_unlabeled <- file.path("rural/plots/state_district_maps/unlabeled")
-folder_labeled   <- file.path("rural/plots/state_district_maps/labeled")
+folder_unlabeled <- file.path(output_dir, "state_district_maps", "unlabeled")
+folder_labeled   <- file.path(output_dir, "state_district_maps", "labeled")
 
 dir.create(folder_unlabeled, recursive = TRUE, showWarnings = FALSE)
 dir.create(folder_labeled, recursive = TRUE, showWarnings = FALSE)
+
+states_to_plot <- fips_lookup |>
+  filter(as.numeric(state_fip) <= 56) |>
+  pull(state_name) |>
+  unique()
 
 walk(states_to_plot, \(st_name) {
   # DRAW THE MAPS
@@ -478,8 +492,8 @@ target_drive_url <- "https://drive.google.com/drive/folders/13e_XkfPcQ54zofzWJhb
 dest_parent <- as_id(target_drive_url)
 
 local_folders <- c(
-  "unlabeled" = "rural/plots/state_district_maps/unlabeled",
-  "labeled"   = "rural/plots/state_district_maps/labeled"
+  "unlabeled" = folder_unlabeled,
+  "labeled"   = folder_labeled
 )
 
 iwalk(local_folders, \(local_dir, subfolder_name) {

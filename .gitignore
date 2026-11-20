@@ -27,3 +27,4 @@ logs/
 .Rhistory
 .RData
 .env
+.Rproj.user
