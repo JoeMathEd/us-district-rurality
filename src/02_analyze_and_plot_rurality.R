@@ -1,11 +1,13 @@
 # 02_analyze_and_plot_rurality.R
 # Compute tract-to-district spatial intersections, merge NCES CCD metrics, and render state maps
+# Uses parallel processing (furrr) and caches the spatial join checkpoint to speed up plot iterations
 # Author: Joe Champion, Boise State University
 
 args <- commandArgs(trailingOnly = TRUE)
-cache_dir  <- if (length(args) >= 1) args[1] else "data_cache"
-output_dir <- if (length(args) >= 2) args[2] else "outputs"
-year_arg   <- if (length(args) >= 3) as.integer(args[3]) else NA_integer_
+cache_dir        <- if (length(args) >= 1) args[1] else "data_cache"
+output_dir       <- if (length(args) >= 2) args[2] else "outputs"
+year_arg         <- if (length(args) >= 3 && args[3] != "" && toupper(args[3]) != "NA") as.integer(args[3]) else NA_integer_
+recompute_spatial <- if (length(args) >= 4) as.logical(args[4]) else FALSE
 
 dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
@@ -17,8 +19,18 @@ library(units)
 library(viridis)
 library(scales)
 library(ggrepel)
+library(furrr)
 
 sf_use_s2(TRUE)
+
+# Configure parallel workers from Slurm CPU allocation ----
+n_workers <- as.integer(Sys.getenv("SLURM_CPUS_PER_TASK", unset = "1"))
+if (!is.na(n_workers) && n_workers > 1L) {
+  plan(multicore, workers = n_workers)
+} else {
+  plan(sequential)
+}
+message("Configured furrr with ", n_workers, " worker(s).")
 
 # Resolve target year from CLI argument or latest_cached_year.txt manifest ----
 manifest_path <- file.path(cache_dir, "latest_cached_year.txt")
@@ -32,172 +44,189 @@ year_this <- if (!is.na(year_arg)) {
 
 message("Running rurality analysis and mapping for year: ", year_this)
 
-# 1. Load Cached Raw Datasets ----
-tracts_path    <- file.path(cache_dir, paste0("tract_pops_raw_", year_this, ".rds"))
-districts_path <- file.path(cache_dir, paste0("districts_geo_raw_", year_this, ".rds"))
-nces_path      <- file.path(cache_dir, paste0("nces_ccd_raw_", year_this, ".rds"))
+# Checkpoint path for joined spatial + NCES dataset ----
+spatial_checkpoint_path <- file.path(cache_dir, paste0("districts_complete_sf_", year_this, ".rds"))
 
-if (!all(file.exists(c(tracts_path, districts_path, nces_path)))) {
-  stop("Missing cached .rds files for ", year_this, " in ", cache_dir, ". Run 01_fetch_rurality_data.R first.")
-}
-
-tract_pops_raw    <- readRDS(tracts_path)
-districts_geo_raw <- readRDS(districts_path)
-nces_ccd_raw      <- readRDS(nces_path)
-
-# 2. Project & Wrangle Census Tracts (Equal-Area Albers EPSG:5070) ----
-tract_pops_clean <- tract_pops_raw |>
-  st_transform(5070) |>
-  st_make_valid() |>
-  mutate(
-    tract_land_mi2    = set_units(st_area(geometry), "mi^2"),
-    tract_pop_density = as.numeric(total_popE / tract_land_mi2),
-    is_low_density    = tract_pop_density < 500,
-    state_fip         = stringr::str_sub(GEOID, 1, 2)
-  ) |>
-  select(
-    tract_geoid = GEOID,
-    state_fip,
-    total_pop = total_popE,
-    tract_pop_density,
-    is_low_density,
-    tract_land_mi2
-  )
-
-# 3. Project & Wrangle School District Boundaries ----
-districts_geo <- districts_geo_raw |>
-  st_transform(5070) |>
-  st_make_valid() |>
-  select(GEOID, state_fip = STATEFP, district_name = NAME) |>
-  filter(as.numeric(state_fip) < 60) |>
-  filter(!st_is_empty(geometry)) |>
-  mutate(district_area_mi2 = set_units(st_area(geometry), "mi^2"))
-
-districts_clean <- districts_geo |>
-  select(GEOID, state_fip, district_name, district_area_mi2)
-
-# 4. Calculate Rurality by Intersecting Tracts with Districts ----
-state_fips <- unique(districts_clean$state_fip)
-
-intersections <- map(
-  state_fips,
-  \(fip) {
-    tr_sub   <- tract_pops_clean |> filter(state_fip == fip)
-    dist_sub <- districts_clean |> filter(state_fip == fip)
-
-    if (nrow(tr_sub) == 0 || nrow(dist_sub) == 0) return(NULL)
-
-    st_intersection(tr_sub, dist_sub)
-  },
-  .progress = "Computing intersections by state"
-) |>
-  compact() |>
-  list_rbind() |>
-  st_as_sf() |>
-  mutate(
-    piece_area_mi2 = set_units(st_area(geometry), "mi^2"),
-    area_prop      = as.numeric(piece_area_mi2 / tract_land_mi2),
-    est_piece_pop  = total_pop * pmin(area_prop, 1.0)
-  )
-
-# 5. Summarize District-Level Rural Serving Metrics ----
-districts_rural_summary <- intersections |>
-  st_drop_geometry() |>
-  group_by(GEOID, district_name) |>
-  summarize(
-    n_intersecting_tracts = n(),
-    est_total_pop         = sum(est_piece_pop, na.rm = TRUE),
-    est_rural_pop         = sum(est_piece_pop[is_low_density], na.rm = TRUE),
-    pct_pop_rural         = ifelse(est_total_pop > 0, 100 * (est_rural_pop / est_total_pop), 0),
-    weighted_mean_density = weighted.mean(tract_pop_density, est_piece_pop, na.rm = TRUE),
-    .groups = "drop"
-  ) |>
-  left_join(
-    districts_geo |> st_drop_geometry() |> select(GEOID, state_fip, district_area_mi2),
-    by = "GEOID"
-  )
-
-# 6. Clean & Merge NCES CCD Directory Data ----
-nces_ccd_cleaned <- nces_ccd_raw |>
-  mutate(
-    GEOID = stringr::str_pad(as.character(leaid), 7, pad = "0"),
-    boundary_change_indicator = as.character(boundary_change_indicator),
-    agency_type = as.character(agency_type),
-    urban_centric_locale_type = case_when(
-      str_starts(urban_centric_locale, "1") ~ "1: City",
-      str_starts(urban_centric_locale, "2") ~ "2: Suburb",
-      str_starts(urban_centric_locale, "3") ~ "3: Town",
-      str_starts(urban_centric_locale, "4") ~ "4: Rural",
-      TRUE ~ NA_character_
-    ),
-    is_operational = boundary_change_indicator %in% c("1", "2", "3", "4"),
-    operational_desc = case_when(
-      boundary_change_indicator == "1" ~ "Open (No change)",
-      boundary_change_indicator == "2" ~ "Open (Boundary change)",
-      boundary_change_indicator == "3" ~ "New district",
-      boundary_change_indicator == "4" ~ "Added",
-      boundary_change_indicator == "5" ~ "Closed",
-      boundary_change_indicator == "6" ~ "Inactive",
-      boundary_change_indicator == "7" ~ "Future",
-      TRUE ~ "Unknown"
-    ),
-    agency_type_desc = case_when(
-      agency_type == "1" ~ "Regular local school district (independent)",
-      agency_type == "2" ~ "Local school district (supervisory union component)",
-      agency_type == "3" ~ "Supervisory union administrative center",
-      agency_type == "4" ~ "Regional Education Service Agency (RESA/BOCES/ESD)",
-      agency_type == "5" ~ "State-operated agency",
-      agency_type == "6" ~ "Federally operated agency (e.g., BIE)",
-      agency_type == "7" ~ "Independent charter district",
-      agency_type == "8" ~ "Other education agency",
-      agency_type == "9" ~ "Specialized public school district",
-      TRUE ~ "Other/Unknown"
-    ),
-    is_traditional_district = agency_type %in% c("1", "2")
-  ) |>
-  select(
-    GEOID,
-    lea_name,
-    agency_type,
-    agency_type_desc,
-    is_traditional_district,
-    boundary_change_indicator,
-    operational_desc,
-    is_operational,
-    urban_centric_locale,
-    urban_centric_locale_type,
-    number_of_schools,
-    enrollment,
-    teachers_total_fte
-  )
-
-districts_complete <- districts_rural_summary |>
-  inner_join(nces_ccd_cleaned, by = "GEOID") |>
-  filter(
-    is_operational,
-    is_traditional_district,
-    enrollment > 0
-  )
-
-# 7. Export Tabular Summary ----
 fips_lookup <- tidycensus::fips_codes |>
   select(state_fip = state_code, state_abbr = state, state_name) |>
   distinct()
 
-districts_tabular <- districts_complete |>
-  st_drop_geometry() |>
-  left_join(fips_lookup, by = "state_fip") |>
-  relocate(GEOID, state_abbr, state_name, lea_name, .before = 1) |>
-  mutate(across(where(~ inherits(.x, "units")), as.numeric))
+if (!isTRUE(recompute_spatial) && file.exists(spatial_checkpoint_path)) {
+  message("Loading cached spatial checkpoint: ", spatial_checkpoint_path)
+  districts_complete_sf <- readRDS(spatial_checkpoint_path)
+} else {
+  # 1. Load Cached Raw Datasets ----
+  tracts_path    <- file.path(cache_dir, paste0("tract_pops_raw_", year_this, ".rds"))
+  districts_path <- file.path(cache_dir, paste0("districts_geo_raw_", year_this, ".rds"))
+  nces_path      <- file.path(cache_dir, paste0("nces_ccd_raw_", year_this, ".rds"))
+  
+  if (!all(file.exists(c(tracts_path, districts_path, nces_path)))) {
+    stop("Missing cached .rds files for ", year_this, " in ", cache_dir, ". Run 01_fetch_rurality_data.R first.")
+  }
+  
+  tract_pops_raw    <- readRDS(tracts_path)
+  districts_geo_raw <- readRDS(districts_path)
+  nces_ccd_raw      <- readRDS(nces_path)
+  
+  # 2. Project & Wrangle Census Tracts (Equal-Area Albers EPSG:5070) ----
+  tract_pops_clean <- tract_pops_raw |>
+    st_transform(5070) |>
+    st_make_valid() |>
+    mutate(
+      tract_land_mi2    = set_units(st_area(geometry), "mi^2"),
+      tract_pop_density = as.numeric(total_popE / tract_land_mi2),
+      is_low_density    = tract_pop_density < 500,
+      state_fip         = stringr::str_sub(GEOID, 1, 2)
+    ) |>
+    select(
+      tract_geoid = GEOID,
+      state_fip,
+      total_pop = total_popE,
+      tract_pop_density,
+      is_low_density,
+      tract_land_mi2
+    )
+  
+  # 3. Project & Wrangle School District Boundaries ----
+  districts_geo <- districts_geo_raw |>
+    st_transform(5070) |>
+    st_make_valid() |>
+    select(GEOID, state_fip = STATEFP, district_name = NAME) |>
+    filter(as.numeric(state_fip) < 60) |>
+    filter(!st_is_empty(geometry)) |>
+    mutate(district_area_mi2 = set_units(st_area(geometry), "mi^2"))
+  
+  districts_clean <- districts_geo |>
+    select(GEOID, state_fip, district_name, district_area_mi2)
+  
+  # 4. Calculate Rurality by Intersecting Tracts with Districts (Parallelized) ----
+  message("Computing state-by-state tract-to-district intersections...")
+  state_fips <- unique(districts_clean$state_fip)
+  
+  intersections <- future_map(
+    state_fips,
+    \(fip) {
+      tr_sub   <- tract_pops_clean |> filter(state_fip == fip)
+      dist_sub <- districts_clean |> filter(state_fip == fip)
+      
+      if (nrow(tr_sub) == 0 || nrow(dist_sub) == 0) return(NULL)
+      
+      st_intersection(tr_sub, dist_sub)
+    },
+    .options = furrr_options(seed = TRUE)
+  ) |>
+    compact() |>
+    list_rbind() |>
+    st_as_sf() |>
+    mutate(
+      piece_area_mi2 = set_units(st_area(geometry), "mi^2"),
+      area_prop      = as.numeric(piece_area_mi2 / tract_land_mi2),
+      est_piece_pop  = total_pop * pmin(area_prop, 1.0)
+    )
+  
+  # 5. Summarize District-Level Rural Serving Metrics ----
+  districts_rural_summary <- intersections |>
+    st_drop_geometry() |>
+    group_by(GEOID, district_name) |>
+    summarize(
+      n_intersecting_tracts = n(),
+      est_total_pop         = sum(est_piece_pop, na.rm = TRUE),
+      est_rural_pop         = sum(est_piece_pop[is_low_density], na.rm = TRUE),
+      pct_pop_rural         = ifelse(est_total_pop > 0, 100 * (est_rural_pop / est_total_pop), 0),
+      weighted_mean_density = weighted.mean(tract_pop_density, est_piece_pop, na.rm = TRUE),
+      .groups = "drop"
+    ) |>
+    left_join(
+      districts_geo |> st_drop_geometry() |> select(GEOID, state_fip, district_area_mi2),
+      by = "GEOID"
+    )
+  
+  # 6. Clean & Merge NCES CCD Directory Data ----
+  nces_ccd_cleaned <- nces_ccd_raw |>
+    mutate(
+      GEOID = stringr::str_pad(as.character(leaid), 7, pad = "0"),
+      boundary_change_indicator = as.character(boundary_change_indicator),
+      agency_type = as.character(agency_type),
+      urban_centric_locale_type = case_when(
+        str_starts(urban_centric_locale, "1") ~ "1: City",
+        str_starts(urban_centric_locale, "2") ~ "2: Suburb",
+        str_starts(urban_centric_locale, "3") ~ "3: Town",
+        str_starts(urban_centric_locale, "4") ~ "4: Rural",
+        TRUE ~ NA_character_
+      ),
+      is_operational = boundary_change_indicator %in% c("1", "2", "3", "4"),
+      operational_desc = case_when(
+        boundary_change_indicator == "1" ~ "Open (No change)",
+        boundary_change_indicator == "2" ~ "Open (Boundary change)",
+        boundary_change_indicator == "3" ~ "New district",
+        boundary_change_indicator == "4" ~ "Added",
+        boundary_change_indicator == "5" ~ "Closed",
+        boundary_change_indicator == "6" ~ "Inactive",
+        boundary_change_indicator == "7" ~ "Future",
+        TRUE ~ "Unknown"
+      ),
+      agency_type_desc = case_when(
+        agency_type == "1" ~ "Regular local school district (independent)",
+        agency_type == "2" ~ "Local school district (supervisory union component)",
+        agency_type == "3" ~ "Supervisory union administrative center",
+        agency_type == "4" ~ "Regional Education Service Agency (RESA/BOCES/ESD)",
+        agency_type == "5" ~ "State-operated agency",
+        agency_type == "6" ~ "Federally operated agency (e.g., BIE)",
+        agency_type == "7" ~ "Independent charter district",
+        agency_type == "8" ~ "Other education agency",
+        agency_type == "9" ~ "Specialized public school district",
+        TRUE ~ "Other/Unknown"
+      ),
+      is_traditional_district = agency_type %in% c("1", "2")
+    ) |>
+    select(
+      GEOID,
+      lea_name,
+      agency_type,
+      agency_type_desc,
+      is_traditional_district,
+      boundary_change_indicator,
+      operational_desc,
+      is_operational,
+      urban_centric_locale,
+      urban_centric_locale_type,
+      number_of_schools,
+      enrollment,
+      teachers_total_fte
+    )
+  
+  districts_complete <- districts_rural_summary |>
+    inner_join(nces_ccd_cleaned, by = "GEOID") |>
+    filter(
+      is_operational,
+      is_traditional_district,
+      enrollment > 0
+    )
+  
+  # Attach state metadata and district geometries for checkpointing
+  districts_complete_sf <- districts_complete |>
+    left_join(fips_lookup, by = "state_fip") |>
+    left_join(districts_geo |> select(GEOID, geometry), by = "GEOID") |>
+    st_as_sf()
+  
+  saveRDS(districts_complete_sf, spatial_checkpoint_path)
+  message("Saved spatial checkpoint to: ", spatial_checkpoint_path)
+  
+  # 7. Export Tabular Summary ----
+  districts_tabular <- districts_complete_sf |>
+    st_drop_geometry() |>
+    relocate(GEOID, state_abbr, state_name, lea_name, .before = 1) |>
+    mutate(across(where(~ inherits(.x, "units")), as.numeric))
+  
+  csv_out_path <- file.path(output_dir, paste0("US_School_Districts_Rural_Summary_", year_this, ".csv"))
+  rds_out_path <- file.path(output_dir, paste0("US_School_Districts_Rural_Summary_", year_this, ".rds"))
+  
+  write_csv(districts_tabular, csv_out_path)
+  saveRDS(districts_tabular, rds_out_path)
+  message("Saved tabular summaries to: ", csv_out_path, " and ", rds_out_path)
+}
 
-csv_out_path <- file.path(output_dir, paste0("US_School_Districts_Rural_Summary_", year_this, ".csv"))
-rds_out_path <- file.path(output_dir, paste0("US_School_Districts_Rural_Summary_", year_this, ".rds"))
-
-write_csv(districts_tabular, csv_out_path)
-saveRDS(districts_tabular, rds_out_path)
-message("Saved tabular summaries to: ", csv_out_path, " and ", rds_out_path)
-
-# 8. Visualize Percent Rural by State ----
+# 8. Visualize Percent Rural by State (Parallelized) ----
 clean_district_name <- function(names) {
   names |>
     str_replace_all("(?i)\\s+in\\s+(the\\s+)?(count(y|ies)|cit(y|ies)).*$", "") |>
@@ -226,10 +255,7 @@ clean_district_name <- function(names) {
     str_remove("[\\.\\,\\-\\s]+$")
 }
 
-districts_complete_sf <- districts_complete |>
-  left_join(fips_lookup, by = "state_fip") |>
-  left_join(districts_geo |> select(GEOID, geometry), by = "GEOID") |>
-  st_as_sf() |>
+districts_complete_sf <- districts_complete_sf |>
   mutate(
     short_name = clean_district_name(lea_name),
     short_name = if_else(short_name == "" | is.na(short_name), word(lea_name, 1), short_name)
@@ -246,14 +272,15 @@ states_to_plot <- fips_lookup |>
   pull(state_name) |>
   unique()
 
-walk(states_to_plot, \(st_name) {
+message("Rendering unlabeled & labeled state maps in parallel...")
+future_walk(states_to_plot, \(st_name) {
   st_data <- districts_complete_sf |>
     filter(state_name == st_name)
-
+  
   if (nrow(st_data) == 0 || all(st_is_empty(st_data$geometry))) return(NULL)
-
+  
   n_districts <- nrow(st_data)
-
+  
   # Dynamic Local Projection (UTM zone based on state centroid)
   centroid_lon <- st_data |>
     st_transform(4326) |>
@@ -261,19 +288,19 @@ walk(states_to_plot, \(st_name) {
     st_centroid() |>
     st_coordinates() |>
     _[, "X"]
-
+  
   utm_zone   <- floor((centroid_lon + 180) / 6) + 1
   state_epsg <- 32600 + utm_zone
-
+  
   st_data_proj <- st_data |>
     st_transform(state_epsg)
-
+  
   # Canvas Sizing & Aspect Ratio
   bbox         <- st_bbox(st_data_proj)
   dx           <- bbox$xmax - bbox$xmin
   dy           <- bbox$ymax - bbox$ymin
   aspect_ratio <- as.numeric(dx / dy)
-
+  
   base_dim <- case_when(
     n_districts < 50   ~ 9,
     n_districts < 150  ~ 11,
@@ -281,7 +308,7 @@ walk(states_to_plot, \(st_name) {
     n_districts < 750  ~ 17,
     TRUE               ~ 21
   )
-
+  
   if (aspect_ratio >= 1) {
     plot_w <- base_dim
     plot_h <- round(base_dim / aspect_ratio, 2)
@@ -289,10 +316,10 @@ walk(states_to_plot, \(st_name) {
     plot_h <- base_dim
     plot_w <- round(base_dim * aspect_ratio, 2)
   }
-
+  
   plot_w <- max(plot_w, 8)
   plot_h <- max(plot_h, 7)
-
+  
   # Base Choropleth
   p_base <- ggplot(st_data_proj) +
     geom_sf(aes(fill = pct_pop_rural), color = "grey35", linewidth = 0.2) +
@@ -320,11 +347,11 @@ walk(states_to_plot, \(st_name) {
       plot.background = element_rect(fill = "#fdfdfd", color = NA),
       plot.margin = margin(15, 15, 15, 15)
     )
-
+  
   clean_filename <- st_name |>
     str_to_lower() |>
     str_replace_all("[^a-z0-9]+", "_")
-
+  
   # 1. Export Unlabeled Map
   ggsave(
     filename = file.path(folder_unlabeled, paste0(clean_filename, "_rural_unlabeled.png")),
@@ -334,14 +361,14 @@ walk(states_to_plot, \(st_name) {
     height = plot_h,
     dpi = 300
   )
-
+  
   # 2. Add Labels & Export Labeled Map
   repel_overlaps <- case_when(
     n_districts > 500 ~ 200,
     n_districts > 200 ~ 100,
     TRUE              ~ 50
   )
-
+  
   st_points <- suppressWarnings(st_point_on_surface(st_data_proj)) |>
     mutate(
       x = st_coordinates(geometry)[, 1],
@@ -351,7 +378,7 @@ walk(states_to_plot, \(st_name) {
       label_size = if_else(area_tertile == 1, 1.9, 2.6)
     ) |>
     st_drop_geometry()
-
+  
   p_labeled <- p_base +
     geom_text_repel(
       data = st_points,
@@ -370,7 +397,7 @@ walk(states_to_plot, \(st_name) {
       show.legend = FALSE
     ) +
     scale_size_identity()
-
+  
   ggsave(
     filename = file.path(folder_labeled, paste0(clean_filename, "_rural_labeled.png")),
     bg = "white",
@@ -379,4 +406,7 @@ walk(states_to_plot, \(st_name) {
     height = plot_h,
     dpi = 300
   )
-}, .progress = "Generating unlabeled & labeled state maps")
+}, .options = furrr_options(seed = TRUE))
+
+plan(sequential)
+message("Completed parallel rendering for ", year_this, ".")
