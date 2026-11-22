@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>US School District Rurality — Proof of Concept</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    html, body, #map { height: 100%; margin: 0; font-family: system-ui, -apple-system, sans-serif; }
+    .info-panel {
+      padding: 10px 14px;
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: 0 1px 6px rgba(0,0,0,0.25);
+      border-radius: 6px;
+      line-height: 1.45;
+      min-width: 240px;
+      max-width: 310px;
+      font-size: 13px;
+      color: #1f2937;
+    }
+    .info-panel h4 { margin: 0 0 6px; font-size: 14px; color: #111827; }
+    .legend { line-height: 20px; font-size: 12px; }
+    .legend-bar {
+      height: 14px;
+      width: 100%;
+      border-radius: 3px;
+      margin: 4px 0 2px;
+      border: 1px solid #d1d5db;
+    }
+    .legend-labels { display: flex; justify-content: space-between; font-size: 11px; color: #4b5563; }
+    .na-swatch {
+      display: inline-block;
+      width: 13px;
+      height: 13px;
+      background: #cccccc;
+      border: 1px solid #9ca3af;
+      vertical-align: middle;
+      margin-right: 6px;
+      border-radius: 2px;
+    }
+    select { width: 100%; padding: 4px 6px; margin-top: 4px; border-radius: 4px; border: 1px solid #d1d5db; }
+    .popup-table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 12px; }
+    .popup-table td { padding: 2px 0; border-bottom: 1px solid #f3f4f6; }
+    .popup-table td:last-child { text-align: right; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const map = L.map('map', { preferCanvas: true }).setView([39.5, -98.35], 4);
+
+    // Free, keyless Esri Light Gray Canvas basemap
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
+      maxZoom: 16
+    }).addTo(map);
+
+    // Exact scale_fill_gradient() from 02_analyze_and_plot_rurality.R
+    const LOW_HEX  = '#1e293b'; // 0%
+    const HIGH_HEX = '#8fb996'; // 100%
+    const NA_COLOR = '#cccccc'; // na.value = "#ccc"
+
+    function hexToRgb(hex) {
+      const clean = hex.replace('#', '');
+      return [
+        parseInt(clean.substring(0, 2), 16),
+        parseInt(clean.substring(2, 4), 16),
+        parseInt(clean.substring(4, 6), 16)
+      ];
+    }
+
+    const C_LOW  = hexToRgb(LOW_HEX);
+    const C_HIGH = hexToRgb(HIGH_HEX);
+
+    function getColor(pct) {
+      if (pct == null || isNaN(pct)) return NA_COLOR;
+      const t = Math.max(0, Math.min(1, Number(pct) / 100));
+      const r = Math.round(C_LOW[0] + t * (C_HIGH[0] - C_LOW[0]));
+      const g = Math.round(C_LOW[1] + t * (C_HIGH[1] - C_LOW[1]));
+      const b = Math.round(C_LOW[2] + t * (C_HIGH[2] - C_LOW[2]));
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    function styleFeature(feature) {
+      return {
+        fillColor: getColor(feature.properties.pct_rural),
+        weight: 0.4,
+        opacity: 0.75,
+        color: '#ffffff',
+        fillOpacity: 0.88
+      };
+    }
+
+    // Top-right hover & state filter panel
+    const info = L.control({ position: 'topright' });
+    info.onAdd = function () {
+      this._div = L.DomUtil.create('div', 'info-panel');
+      L.DomEvent.disableClickPropagation(this._div);
+      this._div.innerHTML = `
+        <h4>US School District Rurality</h4>
+        <label for="stateSelect" style="font-size:12px;color:#4b5563;">Zoom to State:</label>
+        <select id="stateSelect"><option value="ALL">All US Districts</option></select>
+        <div id="hoverDetails" style="margin-top:8px;padding-top:8px;border-top:1px solid #e5e7eb;">
+          Hover over or click a school district
+        </div>
+      `;
+      return this._div;
+    };
+    info.update = function (p) {
+      const box = document.getElementById('hoverDetails');
+      if (!box) return;
+      box.innerHTML = p
+        ? `<strong>${p.name}</strong> (${p.state})<br/>
+           <span style="color:#4b5563;">NCES Locale:</span> ${p.locale ?? 'N/A'}<br/>
+           <span style="color:#4b5563;">% Rural Students:</span> <strong>${p.pct_rural ?? 'N/A'}%</strong><br/>
+           <span style="color:#4b5563;">Enrollment:</span> ${p.enrollment != null ? p.enrollment.toLocaleString() : 'N/A'}`
+        : 'Hover over or click a school district';
+    };
+    info.addTo(map);
+
+    // Bottom-right continuous gradient legend matching R scale_fill_gradient
+    const legend = L.control({ position: 'bottomright' });
+    legend.onAdd = function () {
+      const div = L.DomUtil.create('div', 'info-panel legend');
+      div.innerHTML = `
+        <h4>% Rural Students</h4>
+        <div class="legend-bar" style="background:linear-gradient(to right, ${LOW_HEX} 0%, ${HIGH_HEX} 100%);"></div>
+        <div class="legend-labels"><span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div>
+        <div style="margin-top:6px;"><span class="na-swatch"></span>No data / NA</div>
+      `;
+      return div;
+    };
+    legend.addTo(map);
+
+    let geojsonLayer;
+    let allFeatures = [];
+
+    function fmtNum(val) {
+      return val != null && !isNaN(val) ? Number(val).toLocaleString() : 'N/A';
+    }
+
+    function renderGeoJSON(features) {
+      if (geojsonLayer) map.removeLayer(geojsonLayer);
+      geojsonLayer = L.geoJSON({ type: 'FeatureCollection', features }, {
+        style: styleFeature,
+        onEachFeature: (feature, layer) => {
+          const p = feature.properties;
+          layer.bindPopup(`
+            <strong>${p.name}</strong> (${p.state})<br/>
+            <span style="font-size:11px;color:#6b7280;">GEOID: ${p.geoid} &bull; ${p.locale ?? 'Unknown Locale'}</span>
+            <table class="popup-table">
+              <tr><td>% Rural Students</td><td>${p.pct_rural ?? 'N/A'}%</td></tr>
+              <tr><td>Est. Rural / Total Pop</td><td>${fmtNum(p.rural_pop)} / ${fmtNum(p.total_pop)}</td></tr>
+              <tr><td>Weighted Density</td><td>${fmtNum(p.density)} / mi&sup2;</td></tr>
+              <tr><td>CCD Enrollment</td><td>${fmtNum(p.enrollment)}</td></tr>
+              <tr><td>Schools / Area</td><td>${fmtNum(p.schools)} &bull; ${fmtNum(p.area_mi2)} mi&sup2;</td></tr>
+            </table>
+          `);
+          layer.on({
+            mouseover: (e) => {
+              const target = e.target;
+              target.setStyle({ weight: 2, color: '#f59e0b', fillOpacity: 0.96 });
+              target.bringToFront();
+              info.update(target.feature.properties);
+            },
+            mouseout: (e) => {
+              geojsonLayer.resetStyle(e.target);
+              info.update();
+            }
+          });
+        }
+      }).addTo(map);
+    }
+
+    fetch('data/districts_poc.geojson')
+      .then(res => res.json())
+      .then(data => {
+        allFeatures = data.features;
+        const states = [...new Set(allFeatures.map(f => f.properties.state).filter(Boolean))].sort();
+        const select = document.getElementById('stateSelect');
+        states.forEach(st => {
+          const opt = document.createElement('option');
+          opt.value = st;
+          opt.textContent = st;
+          select.appendChild(opt);
+        });
+
+        select.addEventListener('change', (e) => {
+          const val = e.target.value;
+          if (val === 'ALL') {
+            renderGeoJSON(allFeatures);
+            map.setView([39.5, -98.35], 4);
+          } else {
+            const filtered = allFeatures.filter(f => f.properties.state === val);
+            renderGeoJSON(filtered);
+            map.fitBounds(geojsonLayer.getBounds(), { padding: [20, 20] });
+          }
+        });
+
+        renderGeoJSON(allFeatures);
+      })
+      .catch(err => console.error('Failed to load GeoJSON:', err));
+  </script>
+</body>
+</html>
