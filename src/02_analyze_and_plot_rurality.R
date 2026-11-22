@@ -197,7 +197,7 @@ if (!isTRUE(recompute_spatial) && file.exists(spatial_checkpoint_path)) {
         agency_type == "9" ~ "Specialized public school district",
         TRUE ~ "Other/Unknown"
       ),
-      is_traditional_district = agency_type %in% c("1", "2")
+      is_traditional_district = agency_type %in% c("1", "2", "7")
     ) |>
     select(
       GEOID,
@@ -216,13 +216,17 @@ if (!isTRUE(recompute_spatial) && file.exists(spatial_checkpoint_path)) {
     )
   
   districts_complete <- districts_rural_summary |>
-    inner_join(nces_ccd_cleaned, by = "GEOID") |>
+    left_join(nces_ccd_cleaned, by = "GEOID") |>
     filter(
-      is_operational,
-      is_traditional_district,
-      enrollment > 0
+      is.na(is_operational) | is_operational,
+      is.na(is_traditional_district) | is_traditional_district,
+      is.na(enrollment) | enrollment >= 0
     ) |>
-    mutate(district_name = coalesce(district_name, lea_name))
+    mutate(
+      district_name = coalesce(district_name, lea_name),
+      lea_name      = coalesce(lea_name, district_name),
+      pct_pop_rural = if_else(is.na(enrollment) | enrollment <= 0, NA_real_, pct_pop_rural)
+    )
   
   # Attach state metadata and district geometries, sorting largest area first so elementary
   # districts render on top of overlapping secondary/union high districts
