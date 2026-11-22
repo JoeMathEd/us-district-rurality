@@ -37,7 +37,7 @@ web_districts <- districts_sf |>
   transmute(
     geoid       = GEOID,
     name        = district_name,
-    short_name  = clean_district_name(coalesce(lea_name, district_name)),
+    short_name  = clean_district_name(lea_name, district_name),
     state       = state_abbr,
     pct_rural   = round(pct_pop_rural, 1),
     total_pop   = round(est_total_pop, 0),

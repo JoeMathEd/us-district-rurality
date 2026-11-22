@@ -259,7 +259,7 @@ if (!isTRUE(recompute_spatial) && file.exists(spatial_checkpoint_path)) {
 source(file.path(dirname(sys.frame(1)$ofile %||% "src/02_analyze_and_plot_rurality.R"), "utils", "district_name_helpers.R"))
 
 districts_complete_sf <- districts_complete_sf |>
-  mutate(short_name = clean_district_name(lea_name))
+  mutate( short_name = clean_district_name(lea_name, district_name) )
 
 folder_unlabeled <- file.path(output_dir, "state_district_maps", "unlabeled")
 folder_labeled   <- file.path(output_dir, "state_district_maps", "labeled")
