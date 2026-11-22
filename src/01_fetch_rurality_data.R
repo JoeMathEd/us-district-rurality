@@ -21,12 +21,10 @@ options(tigris_cache_dir = cache_dir)
 sf_use_s2(TRUE)
 
 # 1. Probe Most Recent Common Available Year ----
-# Test candidate years descending from (current_year - 1) using lightweight single-state probes
 current_yr <- as.integer(format(Sys.Date(), "%Y"))
 candidate_years <- seq(current_yr - 1L, 2020L, by = -1L)
 
 check_year_available <- function(yr) {
-  # Probe 1: ACS 5-year tract data (test using DC "11", fast single-county equivalent)
   acs_ok <- tryCatch({
     res <- suppressMessages(get_acs(
       geography = "tract",
@@ -38,8 +36,7 @@ check_year_available <- function(yr) {
     nrow(res) > 0
   }, error = \(e) FALSE)
   if (!acs_ok) return(FALSE)
-
-  # Probe 2: TIGER/Line school districts (test using DC "11")
+  
   tiger_ok <- tryCatch({
     res <- suppressMessages(school_districts(
       state = "11",
@@ -50,8 +47,7 @@ check_year_available <- function(yr) {
     nrow(res) > 0
   }, error = \(e) FALSE)
   if (!tiger_ok) return(FALSE)
-
-  # Probe 3: NCES CCD directory (test using fips = 11 for DC)
+  
   ccd_ok <- tryCatch({
     res <- suppressMessages(get_education_data(
       level = "school-districts",
@@ -61,7 +57,7 @@ check_year_available <- function(yr) {
     ))
     nrow(res) > 0
   }, error = \(e) FALSE)
-
+  
   isTRUE(acs_ok && tiger_ok && ccd_ok)
 }
 
@@ -126,25 +122,36 @@ tract_pops_raw <- map(
 
 saveRDS(tract_pops_raw, tracts_path)
 
-# 3b. TIGER/Line School District Boundaries
+# 3b. TIGER/Line School District Boundaries (Unified, Secondary, Elementary)
 message("Fetching TIGER/Line school district boundaries for ", year_this, "...")
 districts_geo_raw <- map(
   state_fips,
   \(fip) {
     types <- c("unified", "secondary", "elementary")
     map(types, \(t) {
-      tryCatch(
-        school_districts(state = fip, type = t, year = year_this, progress_bar = FALSE),
-        error = \(e) NULL
-      )
+      tryCatch({
+        df <- suppressMessages(
+          school_districts(state = fip, type = t, year = year_this, progress_bar = FALSE)
+        )
+        if (is.null(df) || nrow(df) == 0) return(NULL)
+        df |>
+          select(GEOID, STATEFP, NAME, geometry) |>
+          mutate(tiger_district_type = t)
+      }, error = \(e) NULL)
     }) |>
       compact() |>
-      list_rbind()
+      bind_rows()
   },
   .progress = "Downloading school districts"
 ) |>
-  list_rbind() |>
+  compact() |>
+  bind_rows() |>
+  distinct(GEOID, .keep_all = TRUE) |>
   st_as_sf()
+
+message("Fetched ", nrow(districts_geo_raw), " total TIGER/Line district boundaries across types: ",
+        paste(names(table(districts_geo_raw$tiger_district_type)),
+              table(districts_geo_raw$tiger_district_type), sep = "=", collapse = ", "))
 
 saveRDS(districts_geo_raw, districts_path)
 
@@ -159,6 +166,5 @@ nces_ccd_raw <- get_education_data(
 
 saveRDS(nces_ccd_raw, nces_path)
 
-# Write manifest file so 02_analyze_and_plot_rurality.R knows which year is active
 writeLines(as.character(year_this), manifest_path)
 message("All raw datasets cached successfully for ", year_this, " in: ", cache_dir)

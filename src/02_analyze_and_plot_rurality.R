@@ -4,9 +4,9 @@
 # Author: Joe Champion, Boise State University
 
 args <- commandArgs(trailingOnly = TRUE)
-cache_dir        <- if (length(args) >= 1) args[1] else "data_cache"
-output_dir       <- if (length(args) >= 2) args[2] else "outputs"
-year_arg         <- if (length(args) >= 3 && args[3] != "" && toupper(args[3]) != "NA") as.integer(args[3]) else NA_integer_
+cache_dir         <- if (length(args) >= 1) args[1] else "data_cache"
+output_dir        <- if (length(args) >= 2) args[2] else "outputs"
+year_arg          <- if (length(args) >= 3 && args[3] != "" && toupper(args[3]) != "NA") as.integer(args[3]) else NA_integer_
 recompute_spatial <- if (length(args) >= 4) as.logical(args[4]) else FALSE
 
 dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
@@ -72,28 +72,40 @@ if (!isTRUE(recompute_spatial) && file.exists(spatial_checkpoint_path)) {
   tract_pops_clean <- tract_pops_raw |>
     st_transform(5070) |>
     st_make_valid() |>
+    filter(!st_is_empty(geometry)) |>
     mutate(
+      total_pop         = coalesce(total_popE, 0),
       tract_land_mi2    = set_units(st_area(geometry), "mi^2"),
-      tract_pop_density = as.numeric(total_popE / tract_land_mi2),
+      tract_pop_density = if_else(
+        as.numeric(tract_land_mi2) > 0,
+        as.numeric(total_pop / tract_land_mi2),
+        0
+      ),
       is_low_density    = tract_pop_density < 500,
       state_fip         = stringr::str_sub(GEOID, 1, 2)
     ) |>
     select(
       tract_geoid = GEOID,
       state_fip,
-      total_pop = total_popE,
+      total_pop,
       tract_pop_density,
       is_low_density,
       tract_land_mi2
     )
   
   # 3. Project & Wrangle School District Boundaries ----
+  if (!"tiger_district_type" %in% names(districts_geo_raw)) {
+    districts_geo_raw <- districts_geo_raw |>
+      mutate(tiger_district_type = NA_character_)
+  }
+  
   districts_geo <- districts_geo_raw |>
     st_transform(5070) |>
     st_make_valid() |>
-    select(GEOID, state_fip = STATEFP, district_name = NAME) |>
+    select(GEOID, state_fip = STATEFP, district_name = NAME, tiger_district_type) |>
     filter(as.numeric(state_fip) < 60) |>
     filter(!st_is_empty(geometry)) |>
+    distinct(GEOID, .keep_all = TRUE) |>
     mutate(district_area_mi2 = set_units(st_area(geometry), "mi^2"))
   
   districts_clean <- districts_geo |>
@@ -111,16 +123,20 @@ if (!isTRUE(recompute_spatial) && file.exists(spatial_checkpoint_path)) {
       
       if (nrow(tr_sub) == 0 || nrow(dist_sub) == 0) return(NULL)
       
-      st_intersection(tr_sub, dist_sub)
+      suppressWarnings(st_intersection(tr_sub, dist_sub))
     },
     .options = furrr_options(seed = TRUE)
   ) |>
     compact() |>
-    list_rbind() |>
+    bind_rows() |>
     st_as_sf() |>
     mutate(
       piece_area_mi2 = set_units(st_area(geometry), "mi^2"),
-      area_prop      = as.numeric(piece_area_mi2 / tract_land_mi2),
+      area_prop      = if_else(
+        as.numeric(tract_land_mi2) > 0,
+        as.numeric(piece_area_mi2 / tract_land_mi2),
+        0
+      ),
       est_piece_pop  = total_pop * pmin(area_prop, 1.0)
     )
   
@@ -132,12 +148,16 @@ if (!isTRUE(recompute_spatial) && file.exists(spatial_checkpoint_path)) {
       n_intersecting_tracts = n(),
       est_total_pop         = sum(est_piece_pop, na.rm = TRUE),
       est_rural_pop         = sum(est_piece_pop[is_low_density], na.rm = TRUE),
-      pct_pop_rural         = ifelse(est_total_pop > 0, 100 * (est_rural_pop / est_total_pop), 0),
-      weighted_mean_density = weighted.mean(tract_pop_density, est_piece_pop, na.rm = TRUE),
+      pct_pop_rural         = if_else(est_total_pop > 0, 100 * (est_rural_pop / est_total_pop), NA_real_),
+      weighted_mean_density = if_else(
+        est_total_pop > 0,
+        weighted.mean(tract_pop_density, est_piece_pop, na.rm = TRUE),
+        NA_real_
+      ),
       .groups = "drop"
     ) |>
-    left_join(
-      districts_geo |> st_drop_geometry() |> select(GEOID, state_fip, district_area_mi2),
+    right_join(
+      districts_geo |> st_drop_geometry() |> select(GEOID, state_fip, district_area_mi2, tiger_district_type),
       by = "GEOID"
     )
   
@@ -201,12 +221,15 @@ if (!isTRUE(recompute_spatial) && file.exists(spatial_checkpoint_path)) {
       is_operational,
       is_traditional_district,
       enrollment > 0
-    )
+    ) |>
+    mutate(district_name = coalesce(district_name, lea_name))
   
-  # Attach state metadata and district geometries for checkpointing
+  # Attach state metadata and district geometries, sorting largest area first so elementary
+  # districts render on top of overlapping secondary/union high districts
   districts_complete_sf <- districts_complete |>
     left_join(fips_lookup, by = "state_fip") |>
     left_join(districts_geo |> select(GEOID, geometry), by = "GEOID") |>
+    arrange(desc(district_area_mi2)) |>
     st_as_sf()
   
   saveRDS(districts_complete_sf, spatial_checkpoint_path)
@@ -275,7 +298,8 @@ states_to_plot <- fips_lookup |>
 message("Rendering unlabeled & labeled state maps in parallel...")
 future_walk(states_to_plot, \(st_name) {
   st_data <- districts_complete_sf |>
-    filter(state_name == st_name)
+    filter(state_name == st_name) |>
+    arrange(desc(district_area_mi2))
   
   if (nrow(st_data) == 0 || all(st_is_empty(st_data$geometry))) return(NULL)
   

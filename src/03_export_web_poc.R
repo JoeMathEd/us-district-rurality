@@ -1,3 +1,7 @@
+# 03_export_web_poc.R
+# Export simplified WGS84 GeoJSON for the static interactive web map (docs/data/districts_poc.geojson)
+# Author: Joe Champion, Boise State University
+
 library(sf)
 library(dplyr)
 
@@ -12,7 +16,9 @@ districts_sf <- readRDS(rds_file)
 
 web_districts <- districts_sf |>
   filter(!st_is_empty(geometry)) |>
+  arrange(desc(as.numeric(district_area_mi2))) |>
   st_simplify(preserveTopology = TRUE, dTolerance = 500) |>
+  st_make_valid() |>
   st_transform(4326) |>
   transmute(
     geoid       = GEOID,
