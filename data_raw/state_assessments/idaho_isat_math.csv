@@ -1,0 +1,503 @@
+GEOID,year,test_name,grade,n,lvl1_pct,lvl2_pct,lvl3_pct,lvl4_pct,lvl1_label,lvl2_label,lvl3_label,lvl4_label,status,note
+1600001,2026,Idaho ISAT Math,3,90,27.8,27.8,30,14.4,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600001,2026,Idaho ISAT Math,5,73,24.7,35.6,26,13.7,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600001,2026,Idaho ISAT Math,8,68,48.5,30.9,10.3,10.3,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600002,2026,Idaho ISAT Math,3,297,19.9,20.5,36.7,22.9,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600002,2026,Idaho ISAT Math,5,285,21.1,29.1,18.9,30.9,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600002,2026,Idaho ISAT Math,8,239,20.1,23.8,28,28,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600003,2026,Idaho ISAT Math,3,29,11,13.1,41.4,34.5,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Below Basic <21%, Basic <25%)"
+1600003,2026,Idaho ISAT Math,5,32,10.5,17.6,34.4,37.5,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Below Basic <19%, Basic <32%)"
+1600003,2026,Idaho ISAT Math,8,25,11.4,11.4,13.3,64,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Below Basic <24%, Basic <24%, Proficient <28%)"
+1600004,2026,Idaho ISAT Math,3,71,33.8,29.6,21.1,15.5,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600004,2026,Idaho ISAT Math,5,111,39.6,32.4,15.3,12.6,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600004,2026,Idaho ISAT Math,8,291,51.2,25.4,10.7,12.7,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600005,2026,Idaho ISAT Math,3,24,45.8,21.2,19,14,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Basic <38%, Proficient <34%, Advanced <25%)"
+1600005,2026,Idaho ISAT Math,5,23,34.8,21.7,24.5,18.9,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Basic <31%, Proficient <35%, Advanced <27%)"
+1600005,2026,Idaho ISAT Math,8,23,47.8,22.2,15,15,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Basic <40%, Proficient <27%, Advanced <27%)"
+1600007,2026,Idaho ISAT Math,3,110,6.4,20,30,43.6,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600007,2026,Idaho ISAT Math,5,109,5.5,22,25.7,46.8,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600007,2026,Idaho ISAT Math,8,115,10.4,21.7,21.7,46.1,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600008,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <21%, Basic <35%, Proficient <45%, Advanced <28%)"
+1600008,2026,Idaho ISAT Math,5,33,11,16.3,24.2,48.5,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Below Basic <19%, Basic <28%)"
+1600008,2026,Idaho ISAT Math,8,31,22.6,41.9,19.4,16.1,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600009,2026,Idaho ISAT Math,3,30,15.1,15.1,30,39.9,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Below Basic <20%, Basic <20%, Advanced >53%)"
+1600009,2026,Idaho ISAT Math,5,23,15,43.5,19.4,22.2,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Below Basic <27%, Proficient <35%, Advanced <40%)"
+1600009,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <27%, Basic <40%, Proficient <44%, Advanced <31%)"
+1600010,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600010,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600010,2026,Idaho ISAT Math,8,19,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600011,2026,Idaho ISAT Math,3,60,51.7,21.7,18.3,8.3,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600011,2026,Idaho ISAT Math,5,56,48.2,21.4,14.3,16.1,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600011,2026,Idaho ISAT Math,8,187,54,24.1,11.2,10.7,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600012,2026,Idaho ISAT Math,3,29,12,12,41.4,34.5,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Below Basic <21%, Basic <21%)"
+1600012,2026,Idaho ISAT Math,5,32,8.7,10,37.5,43.8,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Below Basic <19%, Basic <22%)"
+1600012,2026,Idaho ISAT Math,8,25,13.9,13.9,16.2,56,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Below Basic <24%, Basic <24%, Proficient <28%)"
+1600014,2026,Idaho ISAT Math,3,94,19.1,27.7,28.7,24.5,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600014,2026,Idaho ISAT Math,5,96,18.8,25,24,32.3,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600014,2026,Idaho ISAT Math,8,88,26.1,33,19.3,21.6,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600015,2026,Idaho ISAT Math,3,29,10.4,10.4,34.5,44.8,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Below Basic <21%, Basic <21%)"
+1600015,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <18%, Basic <39%, Proficient <39%, Advanced <36%)"
+1600015,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <33%, Basic <22%, Proficient <33%, Advanced <43%)"
+1600016,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600030,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <39%, Basic <30%, Proficient <42%, Advanced <20%)"
+1600030,2026,Idaho ISAT Math,5,47,27.7,25.5,14.9,31.9,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600030,2026,Idaho ISAT Math,8,42,40.5,23.8,14.3,21.4,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600060,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <26%, Basic <38%, Proficient <36%, Advanced <8%)"
+1600060,2026,Idaho ISAT Math,5,106,48.1,33.4,7,11.4,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Basic <38%, Proficient <8%, Advanced <13%)"
+1600060,2026,Idaho ISAT Math,8,119,45.4,27.7,13.4,13.4,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600090,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600090,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600138,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600138,2026,Idaho ISAT Math,5,16,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600138,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600140,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <26%, Basic <24%, Proficient <37%, Advanced <30%)"
+1600140,2026,Idaho ISAT Math,5,64,34.4,29.7,12.5,23.4,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600140,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <38%, Basic <39%, Proficient <24%, Advanced <14%)"
+1600141,2026,Idaho ISAT Math,3,59,11.3,22.6,35.6,30.5,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Below Basic <14%, Basic <28%)"
+1600141,2026,Idaho ISAT Math,5,67,7.1,18.2,28.4,46.3,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Below Basic <9%, Basic <23%)"
+1600141,2026,Idaho ISAT Math,8,60,10,31.7,18.3,40,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600142,2026,Idaho ISAT Math,3,69,23.2,37.7,20.3,18.8,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600142,2026,Idaho ISAT Math,5,59,25.4,27.1,22,25.4,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600142,2026,Idaho ISAT Math,8,40,35,30.5,16,18.5,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Basic <38%, Proficient <20%, Advanced <23%)"
+1600143,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600143,2026,Idaho ISAT Math,5,14,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600143,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600144,2026,Idaho ISAT Math,8,124,75,18.5,3.2,3.2,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Proficient <5%, Advanced <5%)"
+1600145,2026,Idaho ISAT Math,3,26,26.9,23.1,32.1,17.9,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Proficient <43%, Advanced <24%)"
+1600145,2026,Idaho ISAT Math,5,37,40.5,37.8,10.2,11.5,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Proficient <17%, Advanced <19%)"
+1600145,2026,Idaho ISAT Math,8,35,31.4,37.1,12.9,18.6,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Proficient <18%, Advanced <26%)"
+1600148,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600150,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600150,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600150,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600151,2026,Idaho ISAT Math,3,22,10.6,12.2,22.7,54.5,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Below Basic <28%, Basic <32%)"
+1600151,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <30%, Basic <35%, Proficient <30%, Advanced <55%)"
+1600151,2026,Idaho ISAT Math,8,17,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600152,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600153,2026,Idaho ISAT Math,3,53,45.3,15.1,26.4,13.2,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600153,2026,Idaho ISAT Math,5,46,41.3,39.1,10.5,9.1,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Proficient <16%, Advanced <14%)"
+1600153,2026,Idaho ISAT Math,8,46,34.8,26.1,15.2,23.9,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600154,2026,Idaho ISAT Math,3,24,33.3,37.5,17.6,11.6,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Proficient <38%, Advanced <25%)"
+1600154,2026,Idaho ISAT Math,5,20,45,23.6,15.7,15.7,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Basic <45%, Proficient <30%, Advanced <30%)"
+1600154,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600156,2026,Idaho ISAT Math,3,73,17.8,16.4,43.8,21.9,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600156,2026,Idaho ISAT Math,5,76,11.8,23.7,22.4,42.1,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600156,2026,Idaho ISAT Math,8,98,30.6,16.3,22.4,30.6,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600158,2026,Idaho ISAT Math,3,29,12.6,15,31,41.4,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Below Basic <21%, Basic <25%)"
+1600158,2026,Idaho ISAT Math,5,33,10.3,16.9,36.4,36.4,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Below Basic <19%, Basic <31%)"
+1600158,2026,Idaho ISAT Math,8,27,9.7,12.6,29.6,48.1,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Below Basic <23%, Basic <30%)"
+1600159,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600159,2026,Idaho ISAT Math,5,24,70.8,9.7,9.7,9.7,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Basic <25%, Proficient <25%, Advanced <25%)"
+1600159,2026,Idaho ISAT Math,8,23,52.2,20.3,13.7,13.7,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Basic <40%, Proficient <27%, Advanced <27%)"
+1600160,2026,Idaho ISAT Math,3,51,6.9,6.9,35.3,51,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Below Basic <12%, Basic <12%)"
+1600160,2026,Idaho ISAT Math,5,46,6.3,6.3,9,78.3,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Below Basic <14%, Basic <14%, Proficient <20%)"
+1600160,2026,Idaho ISAT Math,8,27,8.6,8.6,8.6,74.1,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Below Basic <23%, Basic <23%, Proficient <23%)"
+1600161,2026,Idaho ISAT Math,3,60,48.3,26.7,16.7,8.3,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600161,2026,Idaho ISAT Math,5,60,46.7,31.7,11.7,10,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600161,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic >50%, Basic <31%, Proficient <18%, Advanced <12%)"
+1600162,2026,Idaho ISAT Math,3,50,14,22,34,30,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600162,2026,Idaho ISAT Math,5,48,19,20.6,27.1,33.3,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Below Basic <23%, Basic <25%)"
+1600162,2026,Idaho ISAT Math,8,52,30.8,32.7,15.4,21.2,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600163,2026,Idaho ISAT Math,3,18,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600163,2026,Idaho ISAT Math,5,17,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600165,2026,Idaho ISAT Math,8,39,48.7,33.3,9.5,8.5,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Proficient <18%, Advanced <16%)"
+1600166,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600166,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600166,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600172,2026,Idaho ISAT Math,3,13,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600172,2026,Idaho ISAT Math,5,28,15.3,15.3,23,46.4,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Below Basic <22%, Basic <22%, Proficient <33%)"
+1600172,2026,Idaho ISAT Math,8,47,9.7,22.3,19.1,48.9,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Below Basic <13%, Basic <30%)"
+1600173,2026,Idaho ISAT Math,8,105,4.2,13.9,21.9,60,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Below Basic <6%, Basic <20%)"
+1600174,2026,Idaho ISAT Math,3,87,4,6.3,29.9,59.8,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Below Basic <7%, Basic <11%)"
+1600174,2026,Idaho ISAT Math,5,108,8.3,20.4,22.2,49.1,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600174,2026,Idaho ISAT Math,8,114,8.8,15.8,20.2,55.3,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600175,2026,Idaho ISAT Math,3,93,18.3,24.7,24.7,32.3,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600175,2026,Idaho ISAT Math,5,88,20.5,34.1,13.6,31.8,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600176,2026,Idaho ISAT Math,3,40,20,17.5,35,27.5,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600176,2026,Idaho ISAT Math,5,42,33.3,26.2,26.2,14.3,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600176,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <36%, Basic <44%, Proficient <29%, Advanced <16%)"
+1600177,2026,Idaho ISAT Math,3,32,31.3,27.3,21.9,19.5,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Basic <35%, Advanced <25%)"
+1600177,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <37%, Basic <31%, Proficient <19%, Advanced <40%)"
+1600177,2026,Idaho ISAT Math,8,32,18.8,18.8,28.1,34.4,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600178,2026,Idaho ISAT Math,3,24,66.7,11.1,11.1,11.1,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Basic <25%, Proficient <25%, Advanced <25%)"
+1600178,2026,Idaho ISAT Math,5,27,40.7,25.9,17.7,15.7,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Proficient <26%, Advanced <23%)"
+1600178,2026,Idaho ISAT Math,8,12,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600179,2026,Idaho ISAT Math,3,45,8.8,11.2,42.2,37.8,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Below Basic <14%, Basic <18%)"
+1600179,2026,Idaho ISAT Math,5,44,15.9,25,11.4,47.7,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600179,2026,Idaho ISAT Math,8,36,9.7,27.8,9.7,52.8,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Below Basic <17%, Proficient <17%)"
+1600180,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <29%, Basic <53%, Proficient <29%, Advanced <34%)"
+1600180,2026,Idaho ISAT Math,5,22,21.8,19.1,31.8,27.3,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Below Basic <32%, Basic <28%)"
+1600180,2026,Idaho ISAT Math,8,28,42.9,28.6,17.1,11.4,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Proficient <33%, Advanced <22%)"
+1600181,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <18%, Basic <32%, Proficient <23%, Advanced <43%)"
+1600181,2026,Idaho ISAT Math,5,57,35.1,19.3,21.1,24.6,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600184,2026,Idaho ISAT Math,3,41,29.3,22,26.8,22,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600184,2026,Idaho ISAT Math,5,48,29.2,39.6,14.6,16.7,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600184,2026,Idaho ISAT Math,8,26,46.2,23.1,14.4,16.3,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Proficient <24%, Advanced <27%)"
+1600186,2026,Idaho ISAT Math,3,16,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600186,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600186,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600188,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <15%, Basic <18%, Proficient <53%, Advanced <30%)"
+1600188,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <37%, Basic <11%, Proficient <35%, Advanced <33%)"
+1600188,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <42%, Basic <42%, Proficient <14%, Advanced <22%)"
+1600189,2026,Idaho ISAT Math,8,65,72.3,14.2,7.1,6.4,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Basic <22%, Proficient <11%, Advanced <10%)"
+1600190,2026,Idaho ISAT Math,3,50,48,14,26.4,11.6,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Proficient <32%, Advanced <14%)"
+1600190,2026,Idaho ISAT Math,5,50,34,30,20,16,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600190,2026,Idaho ISAT Math,8,42,23.8,28.6,23.8,23.8,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600191,2026,Idaho ISAT Math,3,61,23,21.3,34.4,21.3,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600191,2026,Idaho ISAT Math,5,59,11.9,47.5,16.9,23.7,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600191,2026,Idaho ISAT Math,8,37,32.4,21.6,29.7,16.2,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600192,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600192,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600193,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600193,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600193,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600194,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <29%, Basic <29%, Proficient <50%, Advanced <22%)"
+1600194,2026,Idaho ISAT Math,5,30,14.7,14.7,26.7,44,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Below Basic <20%, Basic <20%, Advanced >60%)"
+1600194,2026,Idaho ISAT Math,8,31,14,18.2,22.6,45.2,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Below Basic <20%, Basic <26%)"
+1600195,2026,Idaho ISAT Math,3,72,23.6,30.6,31.9,13.9,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600195,2026,Idaho ISAT Math,5,73,27.4,20.5,20.5,31.5,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600195,2026,Idaho ISAT Math,8,61,41,19.7,19.7,19.7,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600196,2026,Idaho ISAT Math,3,47,8.8,18.8,36.2,36.2,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Below Basic <13%, Basic <28%)"
+1600196,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <13%, Basic <18%, Proficient <18%, Advanced >61%)"
+1600196,2026,Idaho ISAT Math,8,34,12.5,35.3,29.4,22.8,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Below Basic <18%, Advanced <33%)"
+1600197,2026,Idaho ISAT Math,3,39,12.8,12.8,15.4,59,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600197,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <20%, Basic <30%, Proficient <27%, Advanced >46%)"
+1600197,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <43%, Basic <29%, Proficient <29%, Advanced <53%)"
+1600198,2026,Idaho ISAT Math,3,48,18.8,25,33.3,22.9,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600198,2026,Idaho ISAT Math,5,52,48.1,28.8,14.9,8.2,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Proficient <22%, Advanced <12%)"
+1600198,2026,Idaho ISAT Math,8,31,35.5,29,14.2,21.3,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Proficient <20%, Advanced <30%)"
+1600199,2026,Idaho ISAT Math,8,84,22.6,26.2,11.9,39.3,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600201,2026,Idaho ISAT Math,3,51,6.7,9,43.1,41.2,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Below Basic <12%, Basic <16%)"
+1600201,2026,Idaho ISAT Math,5,47,10.6,21.3,34,34,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600201,2026,Idaho ISAT Math,8,39,12.1,19.7,29.6,38.5,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Below Basic <16%, Basic <26%, Proficient <39%)"
+1600202,2026,Idaho ISAT Math,8,47,80.9,8.8,5.2,5.2,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Basic <22%, Proficient <13%, Advanced <13%)"
+1600203,2026,Idaho ISAT Math,8,67,62.7,17.9,12.7,6.7,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Proficient <17%, Advanced <9%)"
+1600204,2026,Idaho ISAT Math,3,118,19.5,22.9,27.1,30.5,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600204,2026,Idaho ISAT Math,5,121,20.7,28.1,22.3,28.9,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600204,2026,Idaho ISAT Math,8,118,29.7,28.8,22,19.5,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600205,2026,Idaho ISAT Math,3,47,14.9,14.9,42.6,27.7,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600205,2026,Idaho ISAT Math,5,48,22.9,18.8,29.2,29.2,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600205,2026,Idaho ISAT Math,8,44,18.2,43.2,15,23.6,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Proficient <19%, Advanced <30%)"
+1600240,2026,Idaho ISAT Math,3,107,29.9,22.4,26.2,21.5,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600240,2026,Idaho ISAT Math,5,109,21.1,33,19.3,26.6,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600240,2026,Idaho ISAT Math,8,94,24.5,24.5,16,35.1,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600270,2026,Idaho ISAT Math,3,245,37.1,26.1,23.3,13.5,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600270,2026,Idaho ISAT Math,5,286,41.3,26.2,19.9,12.6,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600270,2026,Idaho ISAT Math,8,258,39.9,20.2,21.7,18.2,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600300,2026,Idaho ISAT Math,3,191,30.9,23.6,25.1,20.4,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600300,2026,Idaho ISAT Math,5,228,29.8,34.6,15.8,19.7,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600300,2026,Idaho ISAT Math,8,229,33.6,22.7,16.6,27.1,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600330,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600330,2026,Idaho ISAT Math,5,12,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600330,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600360,2026,Idaho ISAT Math,3,1550,27.2,20.8,26.7,25.3,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600360,2026,Idaho ISAT Math,5,1619,31.1,25.7,15.9,27.2,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600360,2026,Idaho ISAT Math,8,1657,28.1,24.9,18.9,28.1,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600420,2026,Idaho ISAT Math,3,121,25.6,22.3,30.6,21.5,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600420,2026,Idaho ISAT Math,5,145,33.8,21.4,24.8,20,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600420,2026,Idaho ISAT Math,8,137,28.5,20.4,24.2,26.9,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Proficient <26%, Advanced <29%)"
+1600450,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <48%, Basic <39%, Proficient <43%, Advanced <29%)"
+1600450,2026,Idaho ISAT Math,5,17,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600450,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600480,2026,Idaho ISAT Math,3,99,38.4,20.2,31.7,9.7,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Proficient <36%, Advanced <11%)"
+1600480,2026,Idaho ISAT Math,5,102,44.1,30.4,9.3,16.1,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Proficient <11%, Advanced <19%)"
+1600480,2026,Idaho ISAT Math,8,95,36.8,30.5,17.9,14.7,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600490,2026,Idaho ISAT Math,3,24,25,20.8,29.2,25,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600490,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <33%, Basic <53%, Proficient <24%, Advanced <18%)"
+1600490,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <25%, Basic <50%, Proficient <25%, Advanced <25%)"
+1600510,2026,Idaho ISAT Math,3,401,41.9,28.9,21.2,8,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600510,2026,Idaho ISAT Math,5,369,61,21.7,9.8,7.6,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600510,2026,Idaho ISAT Math,8,343,64.1,21,8.7,6.1,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600540,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600540,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600540,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600570,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600570,2026,Idaho ISAT Math,5,14,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600570,2026,Idaho ISAT Math,8,12,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600600,2026,Idaho ISAT Math,3,850,33.2,22,28.4,16.5,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600600,2026,Idaho ISAT Math,5,851,40.7,26.8,18.2,14.3,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600600,2026,Idaho ISAT Math,8,769,46.9,23.3,13.5,16.3,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600630,2026,Idaho ISAT Math,3,14,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600630,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600630,2026,Idaho ISAT Math,8,15,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600660,2026,Idaho ISAT Math,3,427,34.2,21.3,26.7,17.8,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600660,2026,Idaho ISAT Math,5,390,41.8,30.5,13.3,14.4,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600660,2026,Idaho ISAT Math,8,445,36,27.6,19.6,16.9,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600690,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600690,2026,Idaho ISAT Math,5,20,24,40,18,18,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Below Basic <40%, Proficient <30%, Advanced <30%)"
+1600690,2026,Idaho ISAT Math,8,11,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600720,2026,Idaho ISAT Math,3,17,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600720,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600720,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600750,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600750,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600750,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600780,2026,Idaho ISAT Math,3,734,15.3,22.1,28.9,33.8,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600780,2026,Idaho ISAT Math,5,782,20.7,21.9,20.5,37,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600780,2026,Idaho ISAT Math,8,716,29.5,24.9,17.6,28.1,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600810,2026,Idaho ISAT Math,3,30,13.4,20,33.3,33.3,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Below Basic <20%, Basic <30%)"
+1600810,2026,Idaho ISAT Math,5,35,14.3,17.1,40,28.6,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600810,2026,Idaho ISAT Math,8,35,20,34.3,22.9,22.9,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600815,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <55%, Basic <38%, Proficient <34%, Advanced <25%)"
+1600815,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic >71%, Basic <29%, Proficient <29%, Advanced <29%)"
+1600815,2026,Idaho ISAT Math,8,24,58.3,18,11.8,11.8,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Basic <38%, Proficient <25%, Advanced <25%)"
+1600840,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <25%, Basic <42%, Proficient <25%, Advanced <46%)"
+1600840,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <47%, Basic <31%, Proficient <24%, Advanced <31%)"
+1600840,2026,Idaho ISAT Math,8,23,47.8,20.5,15.8,15.8,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Basic <35%, Proficient <27%, Advanced <27%)"
+1600870,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600870,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600870,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600900,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600900,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600900,2026,Idaho ISAT Math,8,14,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1600930,2026,Idaho ISAT Math,3,969,26.9,24.5,27,21.6,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600930,2026,Idaho ISAT Math,5,1061,30.7,28.3,19.6,21.4,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600930,2026,Idaho ISAT Math,8,1043,35,27.9,21.6,15.5,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600960,2026,Idaho ISAT Math,3,173,30.1,22,30.6,17.3,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600960,2026,Idaho ISAT Math,5,181,24.9,26.5,18.8,29.8,Below Basic,Basic,Proficient,Advanced,exact,NA
+1600960,2026,Idaho ISAT Math,8,154,39.6,29.9,18.2,12.3,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601020,2026,Idaho ISAT Math,3,168,22.6,22.6,29.2,25.6,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601020,2026,Idaho ISAT Math,5,191,41.9,26.7,14.7,16.8,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601020,2026,Idaho ISAT Math,8,196,48,21.4,14.3,16.3,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601050,2026,Idaho ISAT Math,3,103,32,32,25.2,10.7,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601050,2026,Idaho ISAT Math,5,105,25.7,31.4,19,23.8,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601050,2026,Idaho ISAT Math,8,124,30.6,26.6,22.6,20.2,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601080,2026,Idaho ISAT Math,3,40,20,22.5,37.5,20,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601080,2026,Idaho ISAT Math,5,61,32.8,24.6,23,19.7,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601080,2026,Idaho ISAT Math,8,61,41,19.7,16.4,23,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601110,2026,Idaho ISAT Math,3,155,29.7,25.8,28.4,16.1,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601110,2026,Idaho ISAT Math,5,174,39.7,27,19,14.4,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601110,2026,Idaho ISAT Math,8,179,37.4,22.3,22.3,17.9,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601140,2026,Idaho ISAT Math,3,104,24,26,26.9,23.1,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601140,2026,Idaho ISAT Math,5,101,25.7,30.7,23.8,19.8,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601140,2026,Idaho ISAT Math,8,122,32.8,20.5,18,28.7,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601170,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1601170,2026,Idaho ISAT Math,5,17,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1601170,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1601200,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <27%, Basic <31%, Proficient <48%, Advanced <44%)"
+1601200,2026,Idaho ISAT Math,5,16,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1601200,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <35%, Basic <35%, Proficient <24%, Advanced <43%)"
+1601230,2026,Idaho ISAT Math,3,19,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1601230,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <47%, Basic <40%, Proficient <29%, Advanced <22%)"
+1601230,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <47%, Basic <54%, Proficient <24%, Advanced <24%)"
+1601260,2026,Idaho ISAT Math,3,81,24.7,29.6,33.3,12.3,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601260,2026,Idaho ISAT Math,5,73,38.4,21.9,19.2,20.5,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601260,2026,Idaho ISAT Math,8,85,36.5,23.5,23.5,16.5,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601290,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <19%, Basic <29%, Proficient <48%, Advanced <27%)"
+1601290,2026,Idaho ISAT Math,5,34,26.5,29.4,17.6,26.5,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601290,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <34%, Basic <34%, Proficient <18%, Advanced <36%)"
+1601380,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1601380,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <54%, Basic <29%, Proficient <22%, Advanced <33%)"
+1601380,2026,Idaho ISAT Math,8,33,30.3,24.2,30.3,15.2,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601410,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <25%, Basic <42%, Proficient <42%, Advanced <25%)"
+1601410,2026,Idaho ISAT Math,5,25,44,23.3,14,18.7,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Basic <40%, Proficient <24%, Advanced <32%)"
+1601410,2026,Idaho ISAT Math,8,28,50,21.4,13.4,15.2,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Proficient <22%, Advanced <25%)"
+1601440,2026,Idaho ISAT Math,3,14,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1601440,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1601440,2026,Idaho ISAT Math,8,12,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1601470,2026,Idaho ISAT Math,3,85,30.6,27.1,28.2,14.1,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601470,2026,Idaho ISAT Math,5,97,26.8,27.8,20.9,24.5,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Proficient <23%, Advanced <27%)"
+1601470,2026,Idaho ISAT Math,8,94,25.5,29.8,25.9,18.8,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Proficient <29%, Advanced <21%)"
+1601500,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1601500,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1601500,2026,Idaho ISAT Math,8,12,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1601530,2026,Idaho ISAT Math,3,729,37.6,20,24.3,18.1,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601530,2026,Idaho ISAT Math,5,772,35.1,28.4,17.4,19.2,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601530,2026,Idaho ISAT Math,8,721,38.4,23.6,17.6,20.4,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601570,2026,Idaho ISAT Math,3,489,20.2,23.3,29.4,27,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601570,2026,Idaho ISAT Math,5,512,24.4,27,22.1,26.6,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601570,2026,Idaho ISAT Math,8,502,15.9,26.1,25.3,32.7,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601590,2026,Idaho ISAT Math,3,257,41.6,28.4,23.3,6.6,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601590,2026,Idaho ISAT Math,5,322,49.7,28.6,12.7,9,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601590,2026,Idaho ISAT Math,8,292,43.5,28.8,16.1,11.6,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601620,2026,Idaho ISAT Math,3,46,32.6,28.3,26.1,13,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601620,2026,Idaho ISAT Math,5,46,28.3,32.6,19.6,19.6,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601620,2026,Idaho ISAT Math,8,38,44.7,21.1,22.8,11.4,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Proficient <32%, Advanced <16%)"
+1601650,2026,Idaho ISAT Math,3,94,22.3,30.9,33,13.8,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601650,2026,Idaho ISAT Math,5,89,39.3,30.3,14.6,15.7,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601650,2026,Idaho ISAT Math,8,67,47.8,28.4,13.4,10.4,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601680,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1601680,2026,Idaho ISAT Math,5,22,22.7,22.7,31.8,22.7,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601680,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <37%, Basic <32%, Proficient <28%, Advanced <41%)"
+1601710,2026,Idaho ISAT Math,3,175,25.7,24,30.9,19.4,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601710,2026,Idaho ISAT Math,5,167,24,25.7,27.5,22.8,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601710,2026,Idaho ISAT Math,8,187,49.7,22.5,16.6,11.2,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601740,2026,Idaho ISAT Math,3,20,10,10,15,65,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Below Basic <30%, Basic <30%, Proficient <45%)"
+1601740,2026,Idaho ISAT Math,5,13,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1601740,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1601770,2026,Idaho ISAT Math,3,424,19.3,21.7,33.3,25.7,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601770,2026,Idaho ISAT Math,5,421,33.5,29.2,19.7,17.6,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601770,2026,Idaho ISAT Math,8,405,29.1,23.5,20.5,26.9,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601800,2026,Idaho ISAT Math,3,364,20.6,24.5,31.6,23.4,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601800,2026,Idaho ISAT Math,5,346,28.3,21.1,22.5,28,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601800,2026,Idaho ISAT Math,8,354,26.3,31.1,18.4,24.3,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601830,2026,Idaho ISAT Math,3,42,40.5,32,16.4,11.2,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Basic <43%, Proficient <22%, Advanced <15%)"
+1601830,2026,Idaho ISAT Math,5,30,46.7,26.7,14.5,12.1,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Proficient <24%, Advanced <20%)"
+1601830,2026,Idaho ISAT Math,8,32,56.3,22.7,10.5,10.5,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Basic <41%, Proficient <19%, Advanced <19%)"
+1601860,2026,Idaho ISAT Math,3,330,17,16.4,31.8,34.8,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601860,2026,Idaho ISAT Math,5,346,26.9,21.7,26.3,25.1,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601860,2026,Idaho ISAT Math,8,385,18.4,21,22.6,37.9,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601900,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1601900,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1601900,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1601920,2026,Idaho ISAT Math,3,386,24.1,26.9,28,21,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601920,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <35%, Basic <39%, Proficient <19%, Advanced <11%)"
+1601920,2026,Idaho ISAT Math,8,366,42.9,28.4,18.6,10.1,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601950,2026,Idaho ISAT Math,3,82,19.5,22,20.7,37.8,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601950,2026,Idaho ISAT Math,5,82,31.7,26.8,24.4,17.1,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601950,2026,Idaho ISAT Math,8,69,31.9,26.1,23.2,18.8,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601980,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <42%, Basic <30%, Proficient <35%, Advanced <11%)"
+1601980,2026,Idaho ISAT Math,5,67,31.3,37.3,16.4,14.9,Below Basic,Basic,Proficient,Advanced,exact,NA
+1601980,2026,Idaho ISAT Math,8,66,25.8,34.8,12.1,27.3,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602030,2026,Idaho ISAT Math,3,111,12.6,16.2,31.5,39.6,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602030,2026,Idaho ISAT Math,5,90,17.8,24.4,28.9,28.9,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602030,2026,Idaho ISAT Math,8,105,20,32.4,21.9,25.7,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602060,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1602060,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1602060,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1602070,2026,Idaho ISAT Math,3,59,25.4,16.9,33.9,23.7,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602070,2026,Idaho ISAT Math,5,66,33.3,22.7,25.8,18.2,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602070,2026,Idaho ISAT Math,8,63,50.8,23.8,12.7,12.7,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602100,2026,Idaho ISAT Math,3,2576,17,18.4,30.9,33.7,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602100,2026,Idaho ISAT Math,5,2879,18,23.4,21,37.6,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602100,2026,Idaho ISAT Math,8,2967,19.9,23.7,19.6,36.8,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602130,2026,Idaho ISAT Math,3,290,23.8,20,29,27.2,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602130,2026,Idaho ISAT Math,5,332,27.7,21.7,21.1,29.5,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602130,2026,Idaho ISAT Math,8,337,23.1,24,25.2,27.6,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602160,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1602160,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1602160,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1602190,2026,Idaho ISAT Math,3,295,44.7,22.7,22.7,9.8,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602190,2026,Idaho ISAT Math,5,299,52.2,26.8,10,11,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602190,2026,Idaho ISAT Math,8,306,48,25.8,15.4,10.8,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602220,2026,Idaho ISAT Math,3,185,16.2,15.7,36.2,31.9,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602220,2026,Idaho ISAT Math,5,157,19.1,21.7,14.6,44.6,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602220,2026,Idaho ISAT Math,8,179,14,22.9,15.1,48,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602250,2026,Idaho ISAT Math,3,300,29,21.7,30.3,19,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602250,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <37%, Basic <33%, Proficient <15%, Advanced <20%)"
+1602250,2026,Idaho ISAT Math,8,246,37.4,26.8,12.2,23.6,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602280,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1602280,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1602280,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1602310,2026,Idaho ISAT Math,3,26,34.6,26.9,19.2,19.2,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602310,2026,Idaho ISAT Math,5,31,25.8,22.6,16.1,35.5,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602310,2026,Idaho ISAT Math,8,28,25,17.9,17.9,39.3,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602340,2026,Idaho ISAT Math,3,969,36,23.5,22.6,17.9,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602340,2026,Idaho ISAT Math,5,997,38.8,26.8,17.1,17.4,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602340,2026,Idaho ISAT Math,8,919,48.3,23.8,13.1,14.8,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602370,2026,Idaho ISAT Math,3,78,24.4,26.9,29.5,19.2,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602370,2026,Idaho ISAT Math,5,66,47,27.3,16.7,9.1,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602370,2026,Idaho ISAT Math,8,78,14.1,15.4,24.4,46.2,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602400,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1602400,2026,Idaho ISAT Math,5,16,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1602400,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1602430,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1602430,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1602430,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1602460,2026,Idaho ISAT Math,3,21,61.9,14.1,12,12,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Basic <34%, Proficient <29%, Advanced <29%)"
+1602460,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic >50%, Basic <25%, Proficient <30%, Advanced <25%)"
+1602460,2026,Idaho ISAT Math,8,26,28.5,42.3,14.6,14.6,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Below Basic <47%, Proficient <24%, Advanced <24%)"
+1602490,2026,Idaho ISAT Math,3,918,40.4,28.1,21.8,9.7,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602490,2026,Idaho ISAT Math,5,804,46.1,28.1,14.7,11.1,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602490,2026,Idaho ISAT Math,8,605,42.3,26.4,16.5,14.7,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602520,2026,Idaho ISAT Math,3,82,29.3,30.5,25.6,14.6,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602520,2026,Idaho ISAT Math,5,68,33.8,29.4,17.6,19.1,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602520,2026,Idaho ISAT Math,8,73,42.5,26,16.4,15.1,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602550,2026,Idaho ISAT Math,3,72,15.3,23.6,38.9,22.2,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602550,2026,Idaho ISAT Math,5,65,33.8,26.2,23.1,16.9,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602550,2026,Idaho ISAT Math,8,83,27.7,27.7,24.1,20.5,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602580,2026,Idaho ISAT Math,3,95,42.1,26.3,21.4,10.2,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Proficient <25%, Advanced <12%)"
+1602580,2026,Idaho ISAT Math,5,97,56.7,20.6,12.4,10.3,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602580,2026,Idaho ISAT Math,8,98,59.2,23.5,10.5,6.8,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Proficient <14%, Advanced <9%)"
+1602610,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1602640,2026,Idaho ISAT Math,3,790,26.8,21.4,26.8,24.9,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602640,2026,Idaho ISAT Math,5,869,30.3,25.3,18.8,25.7,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602640,2026,Idaho ISAT Math,8,842,33,21.7,16.2,29.1,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602670,2026,Idaho ISAT Math,3,463,21,22,27.6,29.4,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602670,2026,Idaho ISAT Math,5,508,26.8,28.7,21.3,23.2,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602670,2026,Idaho ISAT Math,8,417,28.5,28.3,19.4,23.7,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602700,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <36%, Basic <18%, Proficient <27%, Advanced <48%)"
+1602700,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <37%, Basic <34%, Proficient <37%, Advanced <20%)"
+1602700,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <36%, Basic <52%, Proficient <23%, Advanced <20%)"
+1602730,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1602760,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1602760,2026,Idaho ISAT Math,5,18,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1602760,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1602790,2026,Idaho ISAT Math,3,55,20,12.7,40,27.3,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602790,2026,Idaho ISAT Math,5,57,31.6,26.3,19.3,22.8,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602790,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <46%, Basic <24%, Proficient <27%, Advanced <24%)"
+1602820,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1602820,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1602820,2026,Idaho ISAT Math,8,12,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1602850,2026,Idaho ISAT Math,3,55,25.5,21.8,34.5,18.2,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602850,2026,Idaho ISAT Math,5,47,48.9,29.8,12.9,8.4,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Proficient <20%, Advanced <13%)"
+1602850,2026,Idaho ISAT Math,8,53,45.3,39.6,8.1,7,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Proficient <14%, Advanced <12%)"
+1602910,2026,Idaho ISAT Math,3,162,17.3,13.6,37.7,31.5,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602910,2026,Idaho ISAT Math,5,174,38.5,23.6,14.9,23,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602910,2026,Idaho ISAT Math,8,196,36.2,26.5,17.9,19.4,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602940,2026,Idaho ISAT Math,3,43,41.9,18.6,18.6,20.9,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602940,2026,Idaho ISAT Math,5,38,42.1,34.2,10,13.7,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Proficient <16%, Advanced <22%)"
+1602940,2026,Idaho ISAT Math,8,34,47.1,23.5,16.8,12.6,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Proficient <24%, Advanced <18%)"
+1602970,2026,Idaho ISAT Math,3,300,36,27.3,27,9.7,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602970,2026,Idaho ISAT Math,5,334,35,32,18,15,Below Basic,Basic,Proficient,Advanced,exact,NA
+1602970,2026,Idaho ISAT Math,8,275,40.7,30.5,16,12.7,Below Basic,Basic,Proficient,Advanced,exact,NA
+1603000,2026,Idaho ISAT Math,3,43,32.6,30.2,23.3,14,Below Basic,Basic,Proficient,Advanced,exact,NA
+1603000,2026,Idaho ISAT Math,5,49,40.8,23.5,20.3,15.4,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Basic <29%, Proficient <25%, Advanced <19%)"
+1603000,2026,Idaho ISAT Math,8,61,23.9,18.7,29.5,27.9,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Below Basic <28%, Basic <22%)"
+1603030,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1603030,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1603030,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1603060,2026,Idaho ISAT Math,3,56,28.6,25,33.9,12.5,Below Basic,Basic,Proficient,Advanced,exact,NA
+1603060,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic >48%, Basic <36%, Proficient <15%, Advanced <12%)"
+1603060,2026,Idaho ISAT Math,8,54,51.9,28.4,9.5,10.3,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Basic <36%, Proficient <12%, Advanced <13%)"
+1603090,2026,Idaho ISAT Math,3,161,15.5,18,33.5,32.9,Below Basic,Basic,Proficient,Advanced,exact,NA
+1603090,2026,Idaho ISAT Math,5,163,32.5,22.7,19.6,25.2,Below Basic,Basic,Proficient,Advanced,exact,NA
+1603090,2026,Idaho ISAT Math,8,155,43.9,22.6,20.6,12.9,Below Basic,Basic,Proficient,Advanced,exact,NA
+1603120,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1603120,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1603120,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1603180,2026,Idaho ISAT Math,3,138,45.7,18.1,20.3,15.9,Below Basic,Basic,Proficient,Advanced,exact,NA
+1603180,2026,Idaho ISAT Math,5,139,36,27.3,17.3,19.4,Below Basic,Basic,Proficient,Advanced,exact,NA
+1603180,2026,Idaho ISAT Math,8,144,38.2,21.5,20.1,20.1,Below Basic,Basic,Proficient,Advanced,exact,NA
+1603210,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1603240,2026,Idaho ISAT Math,3,639,36,21.1,24.1,18.8,Below Basic,Basic,Proficient,Advanced,exact,NA
+1603240,2026,Idaho ISAT Math,5,614,37.1,27.7,15.8,19.4,Below Basic,Basic,Proficient,Advanced,exact,NA
+1603240,2026,Idaho ISAT Math,8,687,43.4,23.7,14,18.9,Below Basic,Basic,Proficient,Advanced,exact,NA
+1603270,2026,Idaho ISAT Math,3,40,27.5,25,35,12.5,Below Basic,Basic,Proficient,Advanced,exact,NA
+1603270,2026,Idaho ISAT Math,5,42,47.6,19,14.3,19,Below Basic,Basic,Proficient,Advanced,exact,NA
+1603270,2026,Idaho ISAT Math,8,36,44.4,22.2,22.3,11.1,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Proficient <34%, Advanced <17%)"
+1603300,2026,Idaho ISAT Math,3,42,21.4,11.9,38.1,28.6,Below Basic,Basic,Proficient,Advanced,exact,NA
+1603300,2026,Idaho ISAT Math,5,46,19.6,32.6,26.1,21.7,Below Basic,Basic,Proficient,Advanced,exact,NA
+1603300,2026,Idaho ISAT Math,8,35,14.3,37.1,17.1,31.4,Below Basic,Basic,Proficient,Advanced,exact,NA
+1603330,2026,Idaho ISAT Math,3,99,24.2,31.3,22.2,22.2,Below Basic,Basic,Proficient,Advanced,exact,NA
+1603330,2026,Idaho ISAT Math,5,105,29.5,22.9,21.9,25.7,Below Basic,Basic,Proficient,Advanced,exact,NA
+1603330,2026,Idaho ISAT Math,8,112,37.5,24.1,17.9,20.5,Below Basic,Basic,Proficient,Advanced,exact,NA
+1603360,2026,Idaho ISAT Math,3,94,47.9,26.6,16,9.6,Below Basic,Basic,Proficient,Advanced,exact,NA
+1603360,2026,Idaho ISAT Math,5,95,71.6,18.9,5.1,4.4,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Proficient <8%, Advanced <7%)"
+1603360,2026,Idaho ISAT Math,8,86,54.7,19.8,16.3,9.3,Below Basic,Basic,Proficient,Advanced,exact,NA
+1603400,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <29%, Basic <35%, Proficient <43%, Advanced <16%)"
+1603400,2026,Idaho ISAT Math,5,47,36.2,21.3,31.9,10.6,Below Basic,Basic,Proficient,Advanced,exact,NA
+1603400,2026,Idaho ISAT Math,8,43,55.8,20.3,13.8,10.1,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Basic <28%, Proficient <19%, Advanced <14%)"
+1603420,2026,Idaho ISAT Math,3,47,10.6,17,29.8,42.6,Below Basic,Basic,Proficient,Advanced,exact,NA
+1603420,2026,Idaho ISAT Math,5,57,10.5,24.6,22.8,42.1,Below Basic,Basic,Proficient,Advanced,exact,NA
+1603420,2026,Idaho ISAT Math,8,56,14.3,26.8,14.3,44.6,Below Basic,Basic,Proficient,Advanced,exact,NA
+1603480,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <50%, Basic <32%, Proficient <35%, Advanced <19%)"
+1603480,2026,Idaho ISAT Math,5,34,73.5,11.4,7.6,7.6,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Basic <27%, Proficient <18%, Advanced <18%)"
+1603480,2026,Idaho ISAT Math,8,56,53.6,30.4,9.2,6.8,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Proficient <15%, Advanced <11%)"
+1603511,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1603511,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1603511,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1603512,2026,Idaho ISAT Math,3,46,17.4,26.1,28.3,28.3,Below Basic,Basic,Proficient,Advanced,exact,NA
+1603512,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic <39%, Basic <42%, Proficient <25%, Advanced <17%)"
+1603512,2026,Idaho ISAT Math,8,26,23.1,26.9,23.1,26.9,Below Basic,Basic,Proficient,Advanced,exact,NA
+1603513,2026,Idaho ISAT Math,3,56,13.2,17.1,28.6,41.1,Below Basic,Basic,Proficient,Advanced,estimated_from_bounds,"Estimated from Idaho SDE bounds (Below Basic <17%, Basic <22%)"
+1603513,2026,Idaho ISAT Math,5,54,27.8,38.9,18.5,14.8,Below Basic,Basic,Proficient,Advanced,exact,NA
+1603513,2026,Idaho ISAT Math,8,48,45.8,25,14.6,14.6,Below Basic,Basic,Proficient,Advanced,exact,NA
+1603514,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1603514,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1603515,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed or not applicable
+1603516,2026,Idaho ISAT Math,8,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,"Idaho SDE dynamic blurring (Below Basic >53%, Basic <37%, Proficient <11%, Advanced <9%)"
+1603517,2026,Idaho ISAT Math,3,57,12.3,17.5,43.9,26.3,Below Basic,Basic,Proficient,Advanced,exact,NA
+1603517,2026,Idaho ISAT Math,5,43,27.9,30.2,27.9,14,Below Basic,Basic,Proficient,Advanced,exact,NA
+1603521,2026,Idaho ISAT Math,3,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)
+1603521,2026,Idaho ISAT Math,5,NA,NA,NA,NA,NA,Below Basic,Basic,Proficient,Advanced,suppressed,Suppressed (small cohort NSize)

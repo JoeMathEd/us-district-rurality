@@ -33,3 +33,6 @@ logs/
 !docs/
 !docs/**
 !docs/maps/**
+
+# Allow standardized state assessment override CSVs
+!data_raw/state_assessments/*.csv
