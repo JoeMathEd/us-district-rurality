@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>US School District Rurality — Proof of Concept</title>
+  <title>US School District Rurality & Math Proficiency</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     html, body, #map { height: 100%; margin: 0; font-family: system-ui, -apple-system, sans-serif; }
@@ -52,11 +52,145 @@
       cursor: pointer;
     }
     .static-btn-wrap button:hover { background: #334155; }
-    .popup-table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 12px; }
-    .popup-table td { padding: 2px 0; border-bottom: 1px solid #f3f4f6; }
-    .popup-table td:last-child { text-align: right; font-weight: 600; }
 
-    /* High-res lightbox modal with click-to-zoom */
+    /* Right-hand District Profile Drawer */
+    #profileDrawer {
+      display: none;
+      position: fixed;
+      top: 12px;
+      right: 12px;
+      bottom: 12px;
+      width: 360px;
+      max-width: calc(100vw - 24px);
+      z-index: 1500;
+      background: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 8px 28px rgba(15, 23, 42, 0.28);
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid #e2e8f0;
+    }
+    #profileDrawer.open { display: flex; }
+    .drawer-header {
+      padding: 14px 16px;
+      background: #1e293b;
+      color: #ffffff;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .drawer-header h3 { margin: 0; font-size: 15px; line-height: 1.3; }
+    .drawer-sub { font-size: 11px; color: #cbd5e1; margin-top: 3px; }
+    .drawer-close {
+      background: rgba(255,255,255,0.14);
+      border: none;
+      color: #ffffff;
+      border-radius: 4px;
+      padding: 4px 8px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .drawer-close:hover { background: rgba(255,255,255,0.25); }
+    .drawer-body { padding: 14px 16px; overflow-y: auto; flex: 1; font-size: 13px; color: #1f2937; }
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #64748b;
+      margin: 14px 0 8px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .section-title:first-child { margin-top: 0; }
+    .metric-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .metric-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 8px 10px;
+    }
+    .metric-label { font-size: 11px; color: #64748b; }
+    .metric-val { font-size: 14px; font-weight: 700; color: #0f172a; margin-top: 2px; }
+
+    /* Stacked bar chart */
+    .chart-meta { font-size: 12px; color: #475569; margin-bottom: 8px; }
+    .chart-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 12px;
+      margin-bottom: 10px;
+      font-size: 11px;
+      color: #334155;
+    }
+    .legend-item { display: flex; align-items: center; gap: 5px; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+    .grade-row { margin-bottom: 11px; }
+    .grade-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 4px;
+    }
+    .grade-n { font-weight: 400; color: #64748b; font-size: 11px; }
+    .stacked-bar {
+      display: flex;
+      height: 24px;
+      width: 100%;
+      border-radius: 4px;
+      overflow: hidden;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+    }
+    .bar-seg {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 600;
+      text-shadow: 0 1px 1px rgba(0,0,0,0.35);
+      transition: opacity 0.15s;
+      cursor: default;
+    }
+    .bar-seg:hover { opacity: 0.88; }
+    .bar-suppressed {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: #64748b;
+      font-style: italic;
+      background: repeating-linear-gradient(
+        -45deg,
+        #f8fafc,
+        #f8fafc 6px,
+        #e2e8f0 6px,
+        #e2e8f0 12px
+      );
+    }
+    .grade-note { font-size: 11px; color: #64748b; margin-top: 3px; }
+    .empty-assessment {
+      background: #f8fafc;
+      border: 1px dashed #cbd5e1;
+      border-radius: 6px;
+      padding: 12px;
+      font-size: 12px;
+      color: #64748b;
+      text-align: center;
+    }
+
+    /* High-res lightbox modal */
     #mapModal {
       display: none;
       position: fixed;
@@ -117,6 +251,19 @@
 <body>
   <div id="map"></div>
 
+  <!-- District Profile Drawer -->
+  <aside id="profileDrawer" aria-label="District Profile">
+    <div class="drawer-header">
+      <div>
+        <h3 id="drawerName">District Name</h3>
+        <div id="drawerSub" class="drawer-sub">GEOID &bull; Locale</div>
+      </div>
+      <button type="button" class="drawer-close" onclick="closeProfileDrawer()">&times;</button>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+  </aside>
+
+  <!-- Static PNG Modal -->
   <div id="mapModal" onclick="if(event.target === this) closeStaticMap()">
     <div class="modal-card">
       <div class="modal-header">
@@ -178,6 +325,8 @@
     }
 
     let currentState = 'ALL';
+    let selectedLayer = null;
+    let assessmentsByGeoid = {};
 
     function openStaticMap() {
       if (currentState === 'ALL') return;
@@ -197,11 +346,124 @@
       document.getElementById('mapModal').classList.remove('open');
     }
 
+    function closeProfileDrawer() {
+      document.getElementById('profileDrawer').classList.remove('open');
+      if (selectedLayer && geojsonLayer) {
+        geojsonLayer.resetStyle(selectedLayer);
+        selectedLayer = null;
+      }
+    }
+
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeStaticMap();
+      if (e.key === 'Escape') {
+        closeStaticMap();
+        closeProfileDrawer();
+      }
     });
 
-    const info = L.control({ position: 'topright' });
+    function fmtNum(val) {
+      return val != null && !isNaN(val) ? Number(val).toLocaleString() : 'N/A';
+    }
+
+    function buildAssessmentHtml(geoid) {
+      const rec = assessmentsByGeoid[geoid];
+      if (!rec || !rec.grades) {
+        return `<div class="empty-assessment">Math assessment data is unavailable or suppressed for this district.</div>`;
+      }
+
+      const levels = rec.levels || ['Not Proficient', 'Proficient or Above'];
+      const palette = rec.palette || (levels.length === 4
+        ? ['#d95f02', '#fc8d62', '#66c2a5', '#1b9e77']
+        : ['#e07a5f', '#3d5a80']);
+
+      const legendHtml = levels.map((lbl, idx) => `
+        <span class="legend-item">
+          <span class="legend-dot" style="background:${palette[idx % palette.length]};"></span>${lbl}
+        </span>
+      `).join('');
+
+      const rowsHtml = ['3', '5', '8'].map(g => {
+        const gObj = rec.grades[g];
+        const nText = gObj && gObj.n != null ? `n = ${Number(gObj.n).toLocaleString()}` : 'n suppressed';
+
+        if (!gObj || !Array.isArray(gObj.pct) || gObj.pct.length === 0) {
+          const reason = (gObj && gObj.note) ? gObj.note : 'Suppressed (small cohort)';
+          return `
+            <div class="grade-row">
+              <div class="grade-header"><span>Grade ${g}</span><span class="grade-n">${nText}</span></div>
+              <div class="stacked-bar"><div class="bar-suppressed">${reason}</div></div>
+            </div>
+          `;
+        }
+
+        const segsHtml = gObj.pct.map((val, idx) => {
+          const pctVal = Number(val);
+          if (pctVal <= 0) return '';
+          const color = palette[idx % palette.length];
+          const label = pctVal >= 11 ? `${Math.round(pctVal)}%` : '';
+          const title = `Grade ${g} — ${levels[idx] || ('Level ' + (idx + 1))}: ${pctVal.toFixed(1)}%`;
+          return `<div class="bar-seg" style="width:${pctVal}%;background:${color};" title="${title}">${label}</div>`;
+        }).join('');
+
+        const noteHtml = gObj.note ? `<div class="grade-note">${gObj.note}</div>` : '';
+
+        return `
+          <div class="grade-row">
+            <div class="grade-header"><span>Grade ${g}</span><span class="grade-n">${nText}</span></div>
+            <div class="stacked-bar">${segsHtml}</div>
+            ${noteHtml}
+          </div>
+        `;
+      }).join('');
+
+      return `
+        <div class="chart-meta"><strong>${rec.test_name || 'State Math Assessment'}</strong> (${rec.year || ''})</div>
+        <div class="chart-legend">${legendHtml}</div>
+        ${rowsHtml}
+      `;
+    }
+
+    function openProfileDrawer(p) {
+      document.getElementById('drawerName').textContent = `${p.name} (${p.state})`;
+      document.getElementById('drawerSub').textContent = `GEOID: ${p.geoid} • ${p.locale ?? 'Unknown Locale'}`;
+
+      document.getElementById('drawerBody').innerHTML = `
+        <div class="section-title">Rurality & Enrollment Profile</div>
+        <div class="metric-grid">
+          <div class="metric-card">
+            <div class="metric-label">% Rural Students</div>
+            <div class="metric-val">${p.pct_rural != null ? p.pct_rural + '%' : 'N/A'}</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">CCD Enrollment</div>
+            <div class="metric-val">${fmtNum(p.enrollment)}</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Est. Rural / Total Pop</div>
+            <div class="metric-val">${fmtNum(p.rural_pop)} / ${fmtNum(p.total_pop)}</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Weighted Density</div>
+            <div class="metric-val">${fmtNum(p.density)} / mi&sup2;</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Operating Schools</div>
+            <div class="metric-val">${fmtNum(p.schools)}</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Land Area</div>
+            <div class="metric-val">${fmtNum(p.area_mi2)} mi&sup2;</div>
+          </div>
+        </div>
+
+        <div class="section-title">Math Proficiency (Grades 3, 5 & 8)</div>
+        ${buildAssessmentHtml(p.geoid)}
+      `;
+
+      document.getElementById('profileDrawer').classList.add('open');
+    }
+
+    const info = L.control({ position: 'topleft' });
     info.onAdd = function () {
       this._div = L.DomUtil.create('div', 'info-panel');
       L.DomEvent.disableClickPropagation(this._div);
@@ -225,12 +487,13 @@
         ? `<strong>${p.name}</strong> (${p.state})<br/>
            <span style="color:#4b5563;">NCES Locale:</span> ${p.locale ?? 'N/A'}<br/>
            <span style="color:#4b5563;">% Rural Students:</span> <strong>${p.pct_rural ?? 'N/A'}%</strong><br/>
-           <span style="color:#4b5563;">Enrollment:</span> ${p.enrollment != null ? p.enrollment.toLocaleString() : 'N/A'}`
+           <span style="color:#4b5563;">Enrollment:</span> ${fmtNum(p.enrollment)}<br/>
+           <span style="font-size:11px;color:#2563eb;">Click district for Grade 3/5/8 math profile</span>`
         : 'Hover over or click a school district';
     };
     info.addTo(map);
 
-    const legend = L.control({ position: 'bottomright' });
+    const legend = L.control({ position: 'bottomleft' });
     legend.onAdd = function () {
       const div = L.DomUtil.create('div', 'info-panel legend');
       div.innerHTML = `
@@ -246,47 +509,50 @@
     let geojsonLayer;
     let allFeatures = [];
 
-    function fmtNum(val) {
-      return val != null && !isNaN(val) ? Number(val).toLocaleString() : 'N/A';
-    }
-
     function renderGeoJSON(features) {
       if (geojsonLayer) map.removeLayer(geojsonLayer);
+      selectedLayer = null;
       geojsonLayer = L.geoJSON({ type: 'FeatureCollection', features }, {
         style: styleFeature,
         onEachFeature: (feature, layer) => {
-          const p = feature.properties;
-          layer.bindPopup(`
-            <strong>${p.name}</strong> (${p.state})<br/>
-            <span style="font-size:11px;color:#6b7280;">GEOID: ${p.geoid} &bull; ${p.locale ?? 'Unknown Locale'}</span>
-            <table class="popup-table">
-              <tr><td>% Rural Students</td><td>${p.pct_rural ?? 'N/A'}%</td></tr>
-              <tr><td>Est. Rural / Total Pop</td><td>${fmtNum(p.rural_pop)} / ${fmtNum(p.total_pop)}</td></tr>
-              <tr><td>Weighted Density</td><td>${fmtNum(p.density)} / mi&sup2;</td></tr>
-              <tr><td>CCD Enrollment</td><td>${fmtNum(p.enrollment)}</td></tr>
-              <tr><td>Schools / Area</td><td>${fmtNum(p.schools)} &bull; ${fmtNum(p.area_mi2)} mi&sup2;</td></tr>
-            </table>
-          `);
           layer.on({
             mouseover: (e) => {
               const target = e.target;
-              target.setStyle({ weight: 2, color: '#f59e0b', fillOpacity: 0.96 });
-              target.bringToFront();
+              if (target !== selectedLayer) {
+                target.setStyle({ weight: 2, color: '#f59e0b', fillOpacity: 0.96 });
+                target.bringToFront();
+              }
               info.update(target.feature.properties);
             },
             mouseout: (e) => {
-              geojsonLayer.resetStyle(e.target);
+              if (e.target !== selectedLayer) {
+                geojsonLayer.resetStyle(e.target);
+              }
               info.update();
+            },
+            click: (e) => {
+              L.DomEvent.stopPropagation(e);
+              if (selectedLayer && selectedLayer !== e.target) {
+                geojsonLayer.resetStyle(selectedLayer);
+              }
+              selectedLayer = e.target;
+              selectedLayer.setStyle({ weight: 2.5, color: '#2563eb', fillOpacity: 0.96 });
+              selectedLayer.bringToFront();
+              openProfileDrawer(e.target.feature.properties);
             }
           });
         }
       }).addTo(map);
     }
 
-    fetch('data/districts_poc.geojson?v=' + Date.now())
-      .then(res => res.json())
-      .then(data => {
-        allFeatures = data.features;
+    const v = Date.now();
+    Promise.all([
+      fetch('data/districts_poc.geojson?v=' + v).then(r => r.json()),
+      fetch('data/math_assessments.json?v=' + v).then(r => r.ok ? r.json() : {}).catch(() => ({}))
+    ])
+      .then(([geoData, assessmentData]) => {
+        assessmentsByGeoid = assessmentData || {};
+        allFeatures = geoData.features;
         const states = [...new Set(allFeatures.map(f => f.properties.state).filter(Boolean))].sort();
         const select = document.getElementById('stateSelect');
         states.forEach(st => {
@@ -298,6 +564,7 @@
 
         select.addEventListener('change', (e) => {
           currentState = e.target.value;
+          closeProfileDrawer();
           const btnWrap = document.getElementById('staticMapBtnWrap');
           if (currentState === 'ALL') {
             btnWrap.style.display = 'none';
@@ -313,7 +580,7 @@
 
         renderGeoJSON(allFeatures);
       })
-      .catch(err => console.error('Failed to load GeoJSON:', err));
+      .catch(err => console.error('Failed to load map data:', err));
   </script>
 </body>
 </html>

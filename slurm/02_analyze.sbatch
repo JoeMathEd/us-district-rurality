@@ -24,3 +24,6 @@ apptainer exec --bind "/bsuscratch/$USER,$HOME" --env R_LIBS="/bsuscratch/$USER/
 
 # 2. Export simplified WGS84 GeoJSON into repo docs/data/
 apptainer exec --bind "/bsuscratch/$USER,$HOME" --env R_LIBS="/bsuscratch/$USER/R_libs" "$SIF" Rscript "$REPO_DIR/src/03_export_web_poc.R" "$CACHE_DIR" "$WEB_DIR/data"
+
+# 3. Fetch/update Grade 3, 5, 8 math assessment summaries into repo docs/data/math_assessments.json
+apptainer exec --bind "/bsuscratch/$USER,$HOME" --env R_LIBS="/bsuscratch/$USER/R_libs" "$SIF" Rscript "$REPO_DIR/src/04_fetch_and_clean_assessments.R" "$CACHE_DIR" "$WEB_DIR/data" "$REPO_DIR/data_raw/state_assessments"
