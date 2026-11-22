@@ -28,3 +28,7 @@ logs/
 .RData
 .env
 .Rproj.user
+
+# Allow static GitHub Pages bundle in docs/
+!docs/
+!docs/**
