@@ -133,10 +133,9 @@ edfacts_grades <- edfacts_clean |>
   )
 
 # Build named list keyed by GEOID for Tier 1
-tier1_list <- edfacts_grades |>
-  group_by(GEOID) |>
-  group_split() |>
-  set_names(map_chr(., ~ .x$GEOID[1])) |>
+edfacts_by_geoid <- split(edfacts_grades, edfacts_grades$GEOID)
+
+tier1_list <- edfacts_by_geoid |>
   map(function(df_g) {
     grades_out <- list()
     for (g in c("3", "5", "8")) {
@@ -179,10 +178,9 @@ if (length(override_files) > 0) {
     mutate(GEOID = str_pad(GEOID, 7, pad = "0")) |>
     filter(grade %in% c("3", "5", "8"), GEOID %in% ccd_df$GEOID)
   
-  tier2_list <- overrides_df |>
-    group_by(GEOID) |>
-    group_split() |>
-    set_names(map_chr(., ~ .x$GEOID[1])) |>
+  overrides_by_geoid <- split(overrides_df, overrides_df$GEOID)
+  
+  tier2_list <- overrides_by_geoid |>
     map(function(df_g) {
       r1 <- df_g[1, ]
       lvl_names <- c(
