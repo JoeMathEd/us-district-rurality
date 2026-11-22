@@ -14,13 +14,13 @@ REPO_DIR="$HOME/us-district-rurality"
 WORK_DIR="/bsuscratch/$USER/district-rurality"
 CACHE_DIR="$WORK_DIR/data_cache"
 OUT_DIR="$WORK_DIR/outputs"
-WEB_DIR="$WORK_DIR/docs"
+WEB_DIR="$REPO_DIR/docs"
 
 YEAR_ARG="${1:-NA}"
 RECOMPUTE_ARG="${2:-FALSE}"
 
-# 1. Run spatial analysis, tabular summary, and static PNG maps (outputs + web docs/maps)
+# 1. Run spatial analysis, tabular summary, and static PNG maps (outputs + repo docs/maps)
 apptainer exec --bind "/bsuscratch/$USER,$HOME" --env R_LIBS="/bsuscratch/$USER/R_libs" "$SIF" Rscript "$REPO_DIR/src/02_analyze_and_plot_rurality.R" "$CACHE_DIR" "$OUT_DIR" "$YEAR_ARG" "$RECOMPUTE_ARG" "$WEB_DIR"
 
-# 2. Export simplified WGS84 GeoJSON into docs/data/
+# 2. Export simplified WGS84 GeoJSON into repo docs/data/
 apptainer exec --bind "/bsuscratch/$USER,$HOME" --env R_LIBS="/bsuscratch/$USER/R_libs" "$SIF" Rscript "$REPO_DIR/src/03_export_web_poc.R" "$CACHE_DIR" "$WEB_DIR/data"
