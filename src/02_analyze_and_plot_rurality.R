@@ -255,39 +255,11 @@ if (!isTRUE(recompute_spatial) && file.exists(spatial_checkpoint_path)) {
 }
 
 # 8. Visualize Percent Rural by State (Parallelized) ----
-clean_district_name <- function(names) {
-  names |>
-    str_replace_all("(?i)\\s+in\\s+(the\\s+)?(count(y|ies)|cit(y|ies)).*$", "") |>
-    str_replace_all("(?i)\\s+and\\s+state(\\s+of.*)?$", "") |>
-    str_to_title() |>
-    str_replace_all("(?i)\\b(No|Number)\\b\\.?\\s*:?\\s*\\d*", "") |>
-    str_replace_all("#\\s*\\d*", "") |>
-    str_replace_all("(?i)\\b(Re|Rj|Jt|R|C|J)[\\s\\-_/]*\\d+[a-z]?\\b", "") |>
-    str_replace_all("(?i)\\b\\d+[a-z]\\b", "") |>
-    str_replace_all("\\b\\d{1,4}\\b", "") |>
-    str_replace_all(
-      "(?i)\\b(Public|Community|Consolidated|Local|Joint|Jt|Unified|Union|Elementary|High|Secondary|Exempted Village|Special|Independent|Charter)\\b",
-      ""
-    ) |>
-    str_replace_all(
-      "(?i)\\b(School\\s+District|District|Dist|Schools?|Sch\\s+Dist|SD|CUSD|USD|ISD|CSD|SSD)\\b",
-      ""
-    ) |>
-    str_replace_all("(?i)\\b(County|Counties|City|Co|Borough|Municipal)\\b", "") |>
-    str_replace_all("[\\.\\,\\(\\)\\[\\]\\-_/\\:\\;\\#]", " ") |>
-    str_replace_all("(?i)\\b(Re|Rj|Jt|No|J|R|C)\\b", "") |>
-    str_replace_all("(?i)\\b(In\\s+The\\s+Of|In\\s+The|Of\\s+The|In|Of|The|And|At|For)\\b", "") |>
-    str_replace_all("\\b(Ii|Iii|Iv|Vi|Vii|Viii)\\b", \(m) str_to_upper(m)) |>
-    str_squish() |>
-    str_remove("^[\\.\\,\\-\\s]+") |>
-    str_remove("[\\.\\,\\-\\s]+$")
-}
+# 8. Visualize Percent Rural by State (Parallelized) ----
+source(file.path(dirname(sys.frame(1)$ofile %||% "src/02_analyze_and_plot_rurality.R"), "utils", "district_name_helpers.R"))
 
 districts_complete_sf <- districts_complete_sf |>
-  mutate(
-    short_name = clean_district_name(lea_name),
-    short_name = if_else(short_name == "" | is.na(short_name), word(lea_name, 1), short_name)
-  )
+  mutate(short_name = clean_district_name(lea_name))
 
 folder_unlabeled <- file.path(output_dir, "state_district_maps", "unlabeled")
 folder_labeled   <- file.path(output_dir, "state_district_maps", "labeled")
