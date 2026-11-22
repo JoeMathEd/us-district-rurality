@@ -32,3 +32,4 @@ logs/
 # Allow static GitHub Pages bundle in docs/
 !docs/
 !docs/**
+!docs/maps/**

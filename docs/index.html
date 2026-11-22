@@ -13,8 +13,8 @@
       box-shadow: 0 1px 6px rgba(0,0,0,0.25);
       border-radius: 6px;
       line-height: 1.45;
-      min-width: 240px;
-      max-width: 310px;
+      min-width: 245px;
+      max-width: 315px;
       font-size: 13px;
       color: #1f2937;
     }
@@ -38,29 +38,113 @@
       margin-right: 6px;
       border-radius: 2px;
     }
-    select { width: 100%; padding: 4px 6px; margin-top: 4px; border-radius: 4px; border: 1px solid #d1d5db; }
+    select { width: 100%; padding: 5px 6px; margin-top: 4px; border-radius: 4px; border: 1px solid #d1d5db; }
+    .static-btn-wrap { display: none; margin-top: 8px; }
+    .static-btn-wrap button {
+      width: 100%;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid #1e293b;
+      border-radius: 4px;
+      background: #1e293b;
+      color: #ffffff;
+      cursor: pointer;
+    }
+    .static-btn-wrap button:hover { background: #334155; }
     .popup-table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 12px; }
     .popup-table td { padding: 2px 0; border-bottom: 1px solid #f3f4f6; }
     .popup-table td:last-child { text-align: right; font-weight: 600; }
+
+    /* High-res lightbox modal with click-to-zoom */
+    #mapModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      background: rgba(15, 23, 42, 0.85);
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    #mapModal.open { display: flex; }
+    .modal-card {
+      background: #ffffff;
+      border-radius: 8px;
+      max-width: 94vw;
+      max-height: 94vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 10px 16px;
+      border-bottom: 1px solid #e5e7eb;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .modal-actions { display: flex; gap: 10px; align-items: center; }
+    .modal-actions a, .modal-actions button {
+      font-size: 12px;
+      padding: 5px 10px;
+      border-radius: 4px;
+      border: 1px solid #d1d5db;
+      background: #f9fafb;
+      color: #111827;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .modal-body { padding: 12px; overflow: auto; text-align: center; background: #f8fafc; }
+    .modal-body img {
+      max-width: 100%;
+      max-height: 80vh;
+      height: auto;
+      border: 1px solid #e2e8f0;
+      cursor: zoom-in;
+    }
+    .modal-body img.zoomed {
+      max-width: none;
+      max-height: none;
+      cursor: zoom-out;
+    }
   </style>
 </head>
 <body>
   <div id="map"></div>
 
+  <div id="mapModal" onclick="if(event.target === this) closeStaticMap()">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span id="modalTitle">Labeled State Map (300 DPI)</span>
+        <div class="modal-actions">
+          <span style="font-size:11px;font-weight:400;color:#6b7280;">Click image to zoom</span>
+          <a id="downloadPngLink" href="#" download>Download PNG</a>
+          <button onclick="closeStaticMap()">Close</button>
+        </div>
+      </div>
+      <div class="modal-body">
+        <img id="modalImg" src="" alt="Labeled State Rurality Map" onclick="this.classList.toggle('zoomed')" />
+      </div>
+    </div>
+  </div>
+
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     const map = L.map('map', { preferCanvas: true }).setView([39.5, -98.35], 4);
 
-    // Free, keyless Esri Light Gray Canvas basemap
     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
       attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
       maxZoom: 16
     }).addTo(map);
 
-    // Exact scale_fill_gradient() from 02_analyze_and_plot_rurality.R
-    const LOW_HEX  = '#1e293b'; // 0%
-    const HIGH_HEX = '#8fb996'; // 100%
-    const NA_COLOR = '#cccccc'; // na.value = "#ccc"
+    const LOW_HEX  = '#1e293b';
+    const HIGH_HEX = '#8fb996';
+    const NA_COLOR = '#cccccc';
 
     function hexToRgb(hex) {
       const clean = hex.replace('#', '');
@@ -93,7 +177,30 @@
       };
     }
 
-    // Top-right hover & state filter panel
+    let currentState = 'ALL';
+
+    function openStaticMap() {
+      if (currentState === 'ALL') return;
+      const abbr = currentState.toLowerCase();
+      const src = `maps/labeled/${abbr}.png?v=${Date.now()}`;
+      document.getElementById('modalTitle').textContent = `${currentState} — Labeled District Map (300 DPI)`;
+      const img = document.getElementById('modalImg');
+      img.classList.remove('zoomed');
+      img.src = src;
+      const dl = document.getElementById('downloadPngLink');
+      dl.href = src;
+      dl.download = `${abbr}_rural_labeled.png`;
+      document.getElementById('mapModal').classList.add('open');
+    }
+
+    function closeStaticMap() {
+      document.getElementById('mapModal').classList.remove('open');
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeStaticMap();
+    });
+
     const info = L.control({ position: 'topright' });
     info.onAdd = function () {
       this._div = L.DomUtil.create('div', 'info-panel');
@@ -102,6 +209,9 @@
         <h4>US School District Rurality</h4>
         <label for="stateSelect" style="font-size:12px;color:#4b5563;">Zoom to State:</label>
         <select id="stateSelect"><option value="ALL">All US Districts</option></select>
+        <div id="staticMapBtnWrap" class="static-btn-wrap">
+          <button type="button" onclick="openStaticMap()">View Labeled Map (300 DPI)</button>
+        </div>
         <div id="hoverDetails" style="margin-top:8px;padding-top:8px;border-top:1px solid #e5e7eb;">
           Hover over or click a school district
         </div>
@@ -120,7 +230,6 @@
     };
     info.addTo(map);
 
-    // Bottom-right continuous gradient legend matching R scale_fill_gradient
     const legend = L.control({ position: 'bottomright' });
     legend.onAdd = function () {
       const div = L.DomUtil.create('div', 'info-panel legend');
@@ -174,7 +283,7 @@
       }).addTo(map);
     }
 
-    fetch('data/districts_poc.geojson')
+    fetch('data/districts_poc.geojson?v=' + Date.now())
       .then(res => res.json())
       .then(data => {
         allFeatures = data.features;
@@ -188,12 +297,15 @@
         });
 
         select.addEventListener('change', (e) => {
-          const val = e.target.value;
-          if (val === 'ALL') {
+          currentState = e.target.value;
+          const btnWrap = document.getElementById('staticMapBtnWrap');
+          if (currentState === 'ALL') {
+            btnWrap.style.display = 'none';
             renderGeoJSON(allFeatures);
             map.setView([39.5, -98.35], 4);
           } else {
-            const filtered = allFeatures.filter(f => f.properties.state === val);
+            btnWrap.style.display = 'block';
+            const filtered = allFeatures.filter(f => f.properties.state === currentState);
             renderGeoJSON(filtered);
             map.fitBounds(geojsonLayer.getBounds(), { padding: [20, 20] });
           }

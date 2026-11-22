@@ -8,6 +8,7 @@ cache_dir         <- if (length(args) >= 1) args[1] else "data_cache"
 output_dir        <- if (length(args) >= 2) args[2] else "outputs"
 year_arg          <- if (length(args) >= 3 && args[3] != "" && toupper(args[3]) != "NA") as.integer(args[3]) else NA_integer_
 recompute_spatial <- if (length(args) >= 4) as.logical(args[4]) else FALSE
+web_dir           <- if (length(args) >= 5 && args[5] != "") args[5] else "docs"
 
 dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
@@ -434,6 +435,20 @@ future_walk(states_to_plot, \(st_name) {
     height = plot_h,
     dpi = 300
   )
+  
+  if (!is.na(web_dir)) {
+    web_labeled_dir <- file.path(web_dir, "maps", "labeled")
+    dir.create(web_labeled_dir, recursive = TRUE, showWarnings = FALSE)
+    st_abbr <- tolower(st_data$state_abbr[1])
+    ggsave(
+      filename = file.path(web_labeled_dir, paste0(st_abbr, ".png")),
+      bg = "white",
+      plot = p_labeled,
+      width = plot_w,
+      height = plot_h,
+      dpi = 300
+    )
+  }
 }, .options = furrr_options(seed = TRUE))
 
 plan(sequential)
