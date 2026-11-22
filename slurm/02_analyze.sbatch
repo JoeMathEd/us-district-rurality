@@ -19,11 +19,4 @@ WEB_DIR="$REPO_DIR/docs"
 YEAR_ARG="${1:-NA}"
 RECOMPUTE_ARG="${2:-FALSE}"
 
-# 1. Run spatial analysis, tabular summary, and static PNG maps (outputs + repo docs/maps)
 apptainer exec --bind "/bsuscratch/$USER,$HOME" --env R_LIBS="/bsuscratch/$USER/R_libs" "$SIF" Rscript "$REPO_DIR/src/02_analyze_and_plot_rurality.R" "$CACHE_DIR" "$OUT_DIR" "$YEAR_ARG" "$RECOMPUTE_ARG" "$WEB_DIR"
-
-# 2. Export simplified WGS84 GeoJSON into repo docs/data/
-apptainer exec --bind "/bsuscratch/$USER,$HOME" --env R_LIBS="/bsuscratch/$USER/R_libs" "$SIF" Rscript "$REPO_DIR/src/03_export_web_poc.R" "$CACHE_DIR" "$WEB_DIR/data"
-
-# 3. Fetch/update Grade 3, 5, 8 math assessment summaries into repo docs/data/math_assessments.json
-apptainer exec --bind "/bsuscratch/$USER,$HOME" --env R_LIBS="/bsuscratch/$USER/R_libs" "$SIF" Rscript "$REPO_DIR/src/04_fetch_and_clean_assessments.R" "$CACHE_DIR" "$WEB_DIR/data" "$REPO_DIR/data_raw/state_assessments"
