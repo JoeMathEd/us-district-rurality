@@ -39,6 +39,16 @@
       border-radius: 2px;
     }
     select { width: 100%; padding: 5px 6px; margin-top: 4px; border-radius: 4px; border: 1px solid #d1d5db; }
+    .label-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+      font-size: 12px;
+      color: #374151;
+      cursor: pointer;
+      user-select: none;
+    }
     .static-btn-wrap { display: none; margin-top: 8px; }
     .static-btn-wrap button {
       width: 100%;
@@ -52,6 +62,42 @@
       cursor: pointer;
     }
     .static-btn-wrap button:hover { background: #334155; }
+
+    /* Non-interactive map labels with high-contrast halo */
+    .map-label-icon {
+      background: transparent !important;
+      border: none !important;
+      pointer-events: none !important;
+    }
+    .state-label-text {
+      display: inline-block;
+      transform: translate(-50%, -50%);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      color: #0f172a;
+      white-space: nowrap;
+      text-shadow:
+        -1.5px -1.5px 0 rgba(255,255,255,0.92),
+         1.5px -1.5px 0 rgba(255,255,255,0.92),
+        -1.5px  1.5px 0 rgba(255,255,255,0.92),
+         1.5px  1.5px 0 rgba(255,255,255,0.92),
+         0 0 4px rgba(255,255,255,0.95);
+    }
+    .district-label-text {
+      display: inline-block;
+      transform: translate(-50%, -50%);
+      font-size: 10.5px;
+      font-weight: 600;
+      color: #111827;
+      white-space: nowrap;
+      text-shadow:
+        -1px -1px 0 rgba(255,255,255,0.92),
+         1px -1px 0 rgba(255,255,255,0.92),
+        -1px  1px 0 rgba(255,255,255,0.92),
+         1px  1px 0 rgba(255,255,255,0.92),
+         0 0 3px rgba(255,255,255,0.9);
+    }
 
     /* Right-hand District Profile Drawer */
     #profileDrawer {
@@ -327,6 +373,7 @@
     let currentState = 'ALL';
     let selectedLayer = null;
     let assessmentsByGeoid = {};
+    let labelsEnabled = true;
 
     function openStaticMap() {
       if (currentState === 'ALL') return;
@@ -472,6 +519,10 @@
         <h4>US School District Rurality</h4>
         <label for="stateSelect" style="font-size:12px;color:#4b5563;">Zoom to State:</label>
         <select id="stateSelect"><option value="ALL">All US Districts</option></select>
+        <label class="label-toggle">
+          <input type="checkbox" id="toggleLabelsChk" checked />
+          Show map labels
+        </label>
         <div id="staticMapBtnWrap" class="static-btn-wrap">
           <button type="button" onclick="openStaticMap()">View Labeled Map (300 DPI)</button>
         </div>
@@ -507,15 +558,167 @@
     };
     legend.addTo(map);
 
+    // --- Two-Tier Scale-Dependent Label Manager ---
+    const labelLayer = L.layerGroup().addTo(map);
+    let stateAnchors = [];
+    let activeDistrictLayers = [];
+
+    function boxesOverlap(a, b, pad = 4) {
+      return !(
+        a.right + pad < b.left ||
+        a.left - pad > b.right ||
+        a.bottom + pad < b.top ||
+        a.top - pad > b.bottom
+      );
+    }
+
+    function computeStateAnchors(features) {
+      const accum = {};
+      features.forEach(f => {
+        const p = f.properties;
+        if (!p || !p.state) return;
+        let lat = p.label_lat;
+        let lon = p.label_lon;
+        if (lat == null || lon == null) {
+          const b = L.geoJSON(f).getBounds();
+          const c = b.getCenter();
+          lat = c.lat;
+          lon = c.lng;
+        }
+        // Area-weighted anchor keeps state abbreviations centered in each state's geographic core
+        const w = Math.max(1, Number(p.area_mi2) || 1);
+        if (!accum[p.state]) accum[p.state] = { sumLat: 0, sumLon: 0, sumW: 0 };
+        accum[p.state].sumLat += lat * w;
+        accum[p.state].sumLon += lon * w;
+        accum[p.state].sumW += w;
+      });
+      stateAnchors = Object.entries(accum).map(([st, v]) => ({
+        state: st,
+        lat: v.sumLat / v.sumW,
+        lon: v.sumLon / v.sumW
+      }));
+    }
+
+    function updateLabels() {
+      labelLayer.clearLayers();
+      if (!labelsEnabled) return;
+
+      const zoom = map.getZoom();
+      const viewBounds = map.getBounds().pad(0.05);
+      const placedBoxes = [];
+
+      // Tier 1: State abbreviations when zoomed out on national view
+      if (currentState === 'ALL' && zoom <= 5) {
+        stateAnchors.forEach(stObj => {
+          const ll = L.latLng(stObj.lat, stObj.lon);
+          if (!viewBounds.contains(ll)) return;
+          const pt = map.latLngToContainerPoint(ll);
+          const w = stObj.state.length * 8 + 6;
+          const h = 15;
+          const box = {
+            left: pt.x - w / 2,
+            right: pt.x + w / 2,
+            top: pt.y - h / 2,
+            bottom: pt.y + h / 2
+          };
+          if (placedBoxes.some(b => boxesOverlap(box, b, 3))) return;
+          placedBoxes.push(box);
+
+          const icon = L.divIcon({
+            className: 'map-label-icon',
+            iconSize: [0, 0],
+            html: `<span class="state-label-text">${stObj.state}</span>`
+          });
+          L.marker(ll, { icon, interactive: false, keyboard: false }).addTo(labelLayer);
+        });
+        return;
+      }
+
+      // Tier 2: Pre-cleaned short district names filtered by screen-pixel polygon size
+      const candidates = [];
+      for (let i = 0; i < activeDistrictLayers.length; i++) {
+        const entry = activeDistrictLayers[i];
+        if (!viewBounds.contains(entry.anchorLatLng)) continue;
+
+        const swPt = map.latLngToContainerPoint(entry.geoBounds.getSouthWest());
+        const nePt = map.latLngToContainerPoint(entry.geoBounds.getNorthEast());
+        const pxW = Math.abs(nePt.x - swPt.x);
+        const pxH = Math.abs(swPt.y - nePt.y);
+
+        // Require sufficient screen-pixel dimensions to hold text cleanly
+        if (pxW < 44 || pxH < 18) continue;
+
+        candidates.push({
+          entry,
+          pxArea: pxW * pxH,
+          pxW
+        });
+      }
+
+      candidates.sort((a, b) => b.pxArea - a.pxArea);
+
+      const maxLabels = 110;
+      let count = 0;
+
+      for (let i = 0; i < candidates.length && count < maxLabels; i++) {
+        const { entry, pxW } = candidates[i];
+        const text = entry.shortName;
+        if (!text) continue;
+
+        const pt = map.latLngToContainerPoint(entry.anchorLatLng);
+        const estW = Math.min(text.length * 6.2 + 8, Math.max(54, pxW * 1.15));
+        const estH = 15;
+        const box = {
+          left: pt.x - estW / 2,
+          right: pt.x + estW / 2,
+          top: pt.y - estH / 2,
+          bottom: pt.y + estH / 2
+        };
+
+        if (placedBoxes.some(b => boxesOverlap(box, b, 4))) continue;
+        placedBoxes.push(box);
+        count++;
+
+        const icon = L.divIcon({
+          className: 'map-label-icon',
+          iconSize: [0, 0],
+          html: `<span class="district-label-text">${text}</span>`
+        });
+        L.marker(entry.anchorLatLng, { icon, interactive: false, keyboard: false }).addTo(labelLayer);
+      }
+    }
+
+    let labelTimer = null;
+    function scheduleLabelUpdate() {
+      if (labelTimer) clearTimeout(labelTimer);
+      labelTimer = setTimeout(updateLabels, 60);
+    }
+
+    map.on('moveend zoomend', scheduleLabelUpdate);
+
     let geojsonLayer;
     let allFeatures = [];
 
     function renderGeoJSON(features) {
       if (geojsonLayer) map.removeLayer(geojsonLayer);
       selectedLayer = null;
+      activeDistrictLayers = [];
+
       geojsonLayer = L.geoJSON({ type: 'FeatureCollection', features }, {
         style: styleFeature,
         onEachFeature: (feature, layer) => {
+          const p = feature.properties;
+          const geoBounds = layer.getBounds();
+          const anchorLatLng = (p.label_lat != null && p.label_lon != null)
+            ? L.latLng(p.label_lat, p.label_lon)
+            : geoBounds.getCenter();
+
+          activeDistrictLayers.push({
+            shortName: p.short_name || p.name,
+            geoBounds,
+            anchorLatLng
+          });
+
           layer.on({
             mouseover: (e) => {
               const target = e.target;
@@ -544,6 +747,8 @@
           });
         }
       }).addTo(map);
+
+      scheduleLabelUpdate();
     }
 
     const v = Date.now();
@@ -554,6 +759,8 @@
       .then(([geoData, assessmentData]) => {
         assessmentsByGeoid = assessmentData || {};
         allFeatures = geoData.features;
+        computeStateAnchors(allFeatures);
+
         const states = [...new Set(allFeatures.map(f => f.properties.state).filter(Boolean))].sort();
         const select = document.getElementById('stateSelect');
         states.forEach(st => {
@@ -561,6 +768,11 @@
           opt.value = st;
           opt.textContent = st;
           select.appendChild(opt);
+        });
+
+        document.getElementById('toggleLabelsChk').addEventListener('change', (e) => {
+          labelsEnabled = e.target.checked;
+          updateLabels();
         });
 
         select.addEventListener('change', (e) => {
