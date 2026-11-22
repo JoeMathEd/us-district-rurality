@@ -366,7 +366,8 @@
     }
 
     function buildAssessmentHtml(geoid) {
-      const rec = assessmentsByGeoid[geoid];
+      const key = geoid != null ? String(geoid).padStart(7, '0') : '';
+      const rec = assessmentsByGeoid[key];
       if (!rec || !rec.grades) {
         return `<div class="empty-assessment">Math assessment data is unavailable or suppressed for this district.</div>`;
       }
