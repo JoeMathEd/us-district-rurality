@@ -25,6 +25,7 @@ current_yr <- as.integer(format(Sys.Date(), "%Y"))
 candidate_years <- seq(current_yr - 1L, 2020L, by = -1L)
 
 check_year_available <- function(yr) {
+  # Probe 1: ACS 5-year tract data (test using DC "11", fast single-county equivalent)
   acs_ok <- tryCatch({
     res <- suppressMessages(get_acs(
       geography = "tract",
@@ -37,6 +38,7 @@ check_year_available <- function(yr) {
   }, error = \(e) FALSE)
   if (!acs_ok) return(FALSE)
   
+  # Probe 2: TIGER/Line school districts (test using DC "11")
   tiger_ok <- tryCatch({
     res <- suppressMessages(school_districts(
       state = "11",
@@ -48,14 +50,15 @@ check_year_available <- function(yr) {
   }, error = \(e) FALSE)
   if (!tiger_ok) return(FALSE)
   
+  # Probe 3: NCES CCD directory (test DC 11 and OR 41 to confirm national availability)
   ccd_ok <- tryCatch({
     res <- suppressMessages(get_education_data(
       level = "school-districts",
       source = "ccd",
       topic = "directory",
-      filters = list(year = yr, fips = 11)
+      filters = list(year = yr, fips = c(11, 41))
     ))
-    nrow(res) > 0
+    nrow(res) > 10
   }, error = \(e) FALSE)
   
   isTRUE(acs_ok && tiger_ok && ccd_ok)
@@ -157,12 +160,38 @@ saveRDS(districts_geo_raw, districts_path)
 
 # 3c. NCES Common Core of Data (CCD) District Directory
 message("Fetching NCES CCD directory data for ", year_this, "...")
-nces_ccd_raw <- get_education_data(
-  level = "school-districts",
-  source = "ccd",
-  topic = "directory",
-  filters = list(year = year_this)
+nces_ccd_raw <- tryCatch(
+  get_education_data(
+    level = "school-districts",
+    source = "ccd",
+    topic = "directory",
+    filters = list(year = year_this)
+  ),
+  error = \(e) {
+    message("Bulk national CCD query failed (", conditionMessage(e), "); fetching state-by-state by FIPS...")
+    map(
+      as.integer(state_fips),
+      \(fip_int) {
+        tryCatch(
+          suppressMessages(get_education_data(
+            level = "school-districts",
+            source = "ccd",
+            topic = "directory",
+            filters = list(year = year_this, fips = fip_int)
+          )),
+          error = \(err) NULL
+        )
+      },
+      .progress = "Downloading NCES CCD by state"
+    ) |>
+      compact() |>
+      bind_rows()
+  }
 )
+
+if (is.null(nces_ccd_raw) || nrow(nces_ccd_raw) == 0) {
+  stop("Failed to retrieve NCES CCD directory records for year ", year_this, ".")
+}
 
 saveRDS(nces_ccd_raw, nces_path)
 
