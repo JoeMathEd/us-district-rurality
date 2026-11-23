@@ -1,7 +1,8 @@
 # 03_export_web.R
 # Export simplified GeoJSON with block-dasymetric ages 5-17 rurality estimates,
-# Extension #3 spatial rurality indicators, percentile ranks, locale-mismatch flags,
-# and guaranteed-interior label anchors.
+# Extension #3 spatial rurality indicators, Extension #1 finance/CWIFT metrics,
+# Extension #2 socioeconomic/industry/commute metrics, percentile ranks,
+# locale-mismatch flags, and guaranteed-interior label anchors.
 # Author: Joe Champion, Boise State University
 
 args <- commandArgs(trailingOnly = TRUE)
@@ -42,6 +43,9 @@ anchors_wgs84 <- suppressWarnings(st_point_on_surface(districts_sf)) |>
   st_transform(4326) |>
   st_coordinates()
 
+has_col <- function(df, nm) nm %in% names(df)
+num_or_na <- function(df, nm) if (has_col(df, nm)) as.numeric(df[[nm]]) else rep(NA_real_, nrow(df))
+
 districts_enriched <- districts_sf |>
   mutate(
     label_lon  = round(anchors_wgs84[, "X"], 5),
@@ -63,6 +67,21 @@ districts_enriched <- districts_sf |>
     est_total_pop           = round(est_total_pop, 0),
     weighted_mean_density   = round(weighted_mean_density, 1),
     area_mi2                = round(as.numeric(district_area_mi2), 1),
+    # Extension #1 finance & CWIFT
+    rev_total_pp            = round(num_or_na(cur_data(), "rev_total_pp"), 0),
+    pct_rev_local           = round(num_or_na(cur_data(), "pct_rev_local"), 1),
+    exp_cur_pp              = round(num_or_na(cur_data(), "exp_cur_pp"), 0),
+    exp_cur_cwift_pp        = round(num_or_na(cur_data(), "exp_cur_cwift_pp"), 0),
+    cwift_est               = round(num_or_na(cur_data(), "cwift_est"), 3),
+    saipe_stpov_pct         = round(num_or_na(cur_data(), "saipe_stpov_pct"), 1),
+    # Extension #2 socioeconomic, industry & commute flows
+    est_med_hh_inc          = round(num_or_na(cur_data(), "est_med_hh_inc"), 0),
+    acs_poverty_pct         = round(num_or_na(cur_data(), "acs_poverty_pct"), 1),
+    res_pct_ag_mining       = round(num_or_na(cur_data(), "res_pct_ag_mining"), 1),
+    res_pct_mfg             = round(num_or_na(cur_data(), "res_pct_mfg"), 1),
+    work_pct_ag_for         = round(num_or_na(cur_data(), "work_pct_ag_for"), 1),
+    work_pct_mfg            = round(num_or_na(cur_data(), "work_pct_mfg"), 1),
+    commute_self_contain_pct = round(num_or_na(cur_data(), "commute_self_contain_pct"), 1),
     nat_rural_pctl          = if_else(!is.na(pct_pop_rural), round(100 * percent_rank(pct_pop_rural), 0), NA_real_)
   ) |>
   group_by(state_abbr) |>
@@ -109,6 +128,19 @@ districts_enriched <- districts_sf |>
     est_total_pop,
     weighted_mean_density,
     area_mi2,
+    rev_total_pp,
+    pct_rev_local,
+    exp_cur_pp,
+    exp_cur_cwift_pp,
+    cwift_est,
+    saipe_stpov_pct,
+    est_med_hh_inc,
+    acs_poverty_pct,
+    res_pct_ag_mining,
+    res_pct_mfg,
+    work_pct_ag_for,
+    work_pct_mfg,
+    commute_self_contain_pct,
     state_rural_pctl,
     nat_rural_pctl,
     locale_mismatch,
@@ -140,7 +172,7 @@ meta_path <- file.path(out_dir, "rurality_meta.json")
 jsonlite::write_json(
   list(
     data_year   = year_this,
-    methodology = "Block-dasymetric ACS ages 5-17 share in low-density census tracts (< 500 people/sq mi), Census Urban Areas & 2020 RUCA",
+    methodology = "Block-dasymetric ACS ages 5-17 share in low-density census tracts (< 500 people/sq mi), Census Urban Areas, 2020 RUCA, edfinr F-33/CWIFT & ACS/LODES8",
     updated_at  = format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
   ),
   meta_path,

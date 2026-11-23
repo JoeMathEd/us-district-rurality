@@ -183,6 +183,15 @@
     .meta-box .val { font-size: 13.5px; font-weight: 700; margin-top: 2px; }
     .meta-box .sub { font-size: 10.5px; color: var(--text-muted); margin-top: 2px; }
 
+    /* District Finance & Local Economy Card */
+    .econ-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .econ-box {
+      background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 7px; padding: 8px 10px;
+    }
+    .econ-box .lbl { font-size: 10.5px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em; }
+    .econ-box .val { font-size: 13.5px; font-weight: 700; margin-top: 2px; color: var(--text-main); }
+    .econ-box .sub { font-size: 10.5px; color: var(--text-muted); margin-top: 2px; }
+
     /* Assessment Bars */
     .section-title { font-size: 12.5px; font-weight: 700; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 6px; }
     .source-tag { font-size: 10px; font-weight: 600; background: #e2e8f0; color: #334155; padding: 2px 6px; border-radius: 4px; white-space: nowrap; }
@@ -372,6 +381,45 @@
       <div class="meta-box">
         <div class="lbl">District Area / Schools</div>
         <div class="val" id="dAreaSchools">—</div>
+      </div>
+    </div>
+
+    <div id="dFinanceEconSection">
+      <div class="section-title">
+        <span>District Finance &amp; Local Economy</span>
+        <span class="source-tag" id="dEconSource">F-33 / CWIFT &amp; ACS / LODES8</span>
+      </div>
+      <div class="econ-grid">
+        <div class="econ-box">
+          <div class="lbl">Rev / Pupil</div>
+          <div class="val" id="dRevTotalPp">—</div>
+          <div class="sub" id="dPctRevLocal">Local share: —</div>
+        </div>
+        <div class="econ-box">
+          <div class="lbl">Current Exp / Pupil</div>
+          <div class="val" id="dExpCurPp">—</div>
+          <div class="sub" id="dExpCwiftPp">CWIFT-adj: —</div>
+        </div>
+        <div class="econ-box">
+          <div class="lbl">CWIFT Index</div>
+          <div class="val" id="dCwiftEst">—</div>
+          <div class="sub" id="dSaipePov">SAIPE child pov.: —</div>
+        </div>
+        <div class="econ-box">
+          <div class="lbl">Est. Med. HH Income</div>
+          <div class="val" id="dMedHhInc">—</div>
+          <div class="sub" id="dAcsPov">ACS poverty: —</div>
+        </div>
+        <div class="econ-box">
+          <div class="lbl">Ag / Forestry Jobs</div>
+          <div class="val" id="dWorkAgFor">—</div>
+          <div class="sub" id="dResAgMin">Res. Ag/Min: —</div>
+        </div>
+        <div class="econ-box">
+          <div class="lbl">Commute Self-Contain.</div>
+          <div class="val" id="dCommuteStay">—</div>
+          <div class="sub" id="dWorkMfg">Mfg jobs (WAC): —</div>
+        </div>
       </div>
     </div>
 
@@ -869,6 +917,36 @@
     syncUrlParams();
   }
 
+  function fmtCurrency(v) {
+    const n = toNum(v);
+    return !isNaN(n) ? `$${Math.round(n).toLocaleString("en-US")}` : "N/A";
+  }
+
+  function fmtIndex(v, digits = 3) {
+    const n = toNum(v);
+    return !isNaN(n) ? n.toFixed(digits) : "N/A";
+  }
+
+  function updateFinanceEconomyCard(p) {
+    document.getElementById("dRevTotalPp").textContent = fmtCurrency(p.rev_total_pp);
+    document.getElementById("dPctRevLocal").textContent = `Local share: ${fmtPct(p.pct_rev_local)}`;
+
+    document.getElementById("dExpCurPp").textContent = fmtCurrency(p.exp_cur_pp);
+    document.getElementById("dExpCwiftPp").textContent = `CWIFT-adj: ${fmtCurrency(p.exp_cur_cwift_pp)}`;
+
+    document.getElementById("dCwiftEst").textContent = fmtIndex(p.cwift_est, 3);
+    document.getElementById("dSaipePov").textContent = `SAIPE child pov.: ${fmtPct(p.saipe_stpov_pct)}`;
+
+    document.getElementById("dMedHhInc").textContent = fmtCurrency(p.est_med_hh_inc);
+    document.getElementById("dAcsPov").textContent = `ACS poverty: ${fmtPct(p.acs_poverty_pct)}`;
+
+    document.getElementById("dWorkAgFor").textContent = fmtPct(p.work_pct_ag_for);
+    document.getElementById("dResAgMin").textContent = `Res. Ag/Min: ${fmtPct(p.res_pct_ag_mining)}`;
+
+    document.getElementById("dCommuteStay").textContent = fmtPct(p.commute_self_contain_pct);
+    document.getElementById("dWorkMfg").textContent = `Mfg jobs (WAC): ${fmtPct(p.work_pct_mfg)}`;
+  }
+
   function openDistrictDrawer(geoid) {
     const lyr = state.layersByGeoid.get(geoid);
     if (!lyr) return;
@@ -920,6 +998,7 @@
     document.getElementById("dDensity").textContent = p.weighted_mean_density != null ? `${Number(p.weighted_mean_density).toLocaleString()} / mi²` : "N/A";
     document.getElementById("dAreaSchools").textContent = `${p.area_mi2 ?? "—"} mi² • ${p.number_of_schools ?? "—"} sch`;
 
+    updateFinanceEconomyCard(p);
     renderAssessmentBars(p.GEOID);
   }
 
