@@ -32,7 +32,7 @@ id_blocks <- readRDS(file.path(cache_dir, "decennial_block_points_2020.rds")) |>
   filter(state_fip == "16") |>
   st_transform(5070)
 
-# 2. Fetch & cache Census Urban Areas (national file, filtered to ID + 150-mile buffer for cross-border cores like Spokane/Salt Lake) ----
+# 2. Fetch & cache Census Urban Areas (filtered to ID + 200-mile buffer) ----
 ua_cache_path <- file.path(cache_dir, paste0("urban_areas_raw_", year_this, ".rds"))
 if (file.exists(ua_cache_path)) {
   ua_raw <- readRDS(ua_cache_path)
@@ -44,32 +44,38 @@ if (file.exists(ua_cache_path)) {
 
 ua_5070 <- ua_raw |>
   st_transform(5070) |>
-  st_make_valid()
+  st_make_valid() |>
+  rename(UACE20 = any_of(c("UACE20", "UACE10", "GEOID20", "GEOID")))
 
 # Keep Urban Areas within 200 miles of Idaho (captures Spokane WA, Logan/Ogden UT, Ontario OR, Missoula MT)
 id_buffer <- st_buffer(st_union(districts_sf), dist = set_units(200, "mi"))
 ua_region <- ua_5070[lengths(st_intersects(ua_5070, id_buffer)) > 0, ]
 
-# Note: 2020 Census Urban Areas use UATYP10/NAMELSAD20; population is available in Decennial/ACS or via area/2010-2020 crosswalk.
-# Fetch 2020 Decennial Urban Area populations (P1_001N) to distinguish Urbanized Areas (>=50k) from Urban Clusters (5k-50k)
-ua_pop_cache <- file.path(cache_dir, "urban_area_pops_2020.rds")
-if (file.exists(ua_pop_cache)) {
-  ua_pops <- readRDS(ua_pop_cache)
-} else {
-  ua_pops <- tidycensus::get_decennial(
-    geography = "urban area",
-    variables = "P1_001N",
-    year = 2020
-  ) |>
-    transmute(UACE20 = GEOID, ua_pop_2020 = value)
-  saveRDS(ua_pops, ua_pop_cache)
-}
+# Compute exact 2020 Urban Area populations directly from cached 2020 Decennial block points
+# (includes ID + neighboring states so cross-border urban cores like Spokane/Logan get full population)
+neighbor_fips <- c("16", "53", "41", "32", "49", "56", "30")
+regional_blocks <- readRDS(file.path(cache_dir, "decennial_block_points_2020.rds")) |>
+  filter(state_fip %in% neighbor_fips) |>
+  st_transform(5070)
+
+ua_pops <- st_join(
+  regional_blocks |> select(blk_pop),
+  ua_region |> select(UACE20),
+  join = st_intersects,
+  left = FALSE
+) |>
+  st_drop_geometry() |>
+  group_by(UACE20) |>
+  summarize(ua_pop_2020 = sum(blk_pop, na.rm = TRUE), .groups = "drop")
+
+rm(regional_blocks)
+gc()
 
 ua_region <- ua_region |>
-  rename(UACE20 = any_of(c("UACE20", "UACE10", "GEOID20", "GEOID"))) |>
   left_join(ua_pops, by = "UACE20")
 
 ua_50k <- ua_region |> filter(coalesce(ua_pop_2020, 0) >= 50000)
+
 
 # 3. Fetch & cache USDA ERS Tract-Level RUCA Codes (2020 or 2010 legacy fallback) ----
 ruca_cache_path <- file.path(cache_dir, "ruca_tracts_cached.rds")
