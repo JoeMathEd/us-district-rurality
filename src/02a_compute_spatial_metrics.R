@@ -12,6 +12,12 @@ year_arg   <- if (length(args) >= 3 && args[3] != "" && toupper(args[3]) != "NA"
 
 dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
+log_msg <- function(...) {
+  ts <- format(Sys.time(), "%H:%M:%S")
+  message("[", ts, "] ", paste0(..., collapse = ""))
+  flush.console()
+}
+
 # Configuration ----
 library(tidyverse)
 library(sf)
@@ -28,7 +34,7 @@ if (!is.na(spatial_workers) && spatial_workers > 1L) {
 } else {
   plan(sequential)
 }
-message("Configured 02a spatial computation with ", spatial_workers, " worker(s).")
+log_msg("Configured 02a spatial computation with ", spatial_workers, " worker(s).")
 
 manifest_path <- file.path(cache_dir, "latest_cached_year.txt")
 year_this <- if (!is.na(year_arg)) {
@@ -39,7 +45,7 @@ year_this <- if (!is.na(year_arg)) {
   stop("No year specified and ", manifest_path, " not found. Run 01_fetch_rurality_data.R first.")
 }
 
-message("Computing national block-dasymetric, Extension #1, #2 & #3 spatial metrics for year: ", year_this)
+log_msg("Starting national block-dasymetric, Extension #1, #2 & #3 spatial metrics for year: ", year_this)
 
 fips_lookup <- tidycensus::fips_codes |>
   select(state_fip = state_code, state_abbr = state, state_name) |>
@@ -58,29 +64,34 @@ if (!all(file.exists(required_files))) {
   stop("Missing required cached .rds files in ", cache_dir, ". Run 01_fetch_rurality_data.R first.")
 }
 
+log_msg("Step 1/8: Loading core cached .rds datasets...")
 tract_pops_raw         <- readRDS(tracts_path)
 districts_geo_raw      <- readRDS(districts_path)
 nces_ccd_raw           <- readRDS(nces_path)
 decennial_block_points <- readRDS(blocks_path) |> st_transform(5070)
 urban_areas_raw        <- readRDS(urban_areas_path)
 ruca_df                <- readRDS(ruca_path)
+log_msg("  Loaded tracts (", nrow(tract_pops_raw), "), districts (", nrow(districts_geo_raw),
+        "), CCD (", nrow(nces_ccd_raw), "), blocks (", nrow(decennial_block_points),
+        "), urban areas (", nrow(urban_areas_raw), "), RUCA (", nrow(ruca_df), ").")
 
-# Optional Extension #1 & #2 caches
 fin_files <- sort(list.files(cache_dir, pattern = "^edfinr_finance_\\d{4}\\.rds$", full.names = TRUE), decreasing = TRUE)
 fin_raw   <- if (length(fin_files) > 0) readRDS(fin_files[1]) else NULL
+log_msg("  Extension #1 finance cache: ", if (length(fin_files) > 0) basename(fin_files[1]) else "none found")
 
 wac_files <- sort(list.files(cache_dir, pattern = "^lodes8_wac_\\d{4}\\.rds$", full.names = TRUE), decreasing = TRUE)
 od_files  <- sort(list.files(cache_dir, pattern = "^lodes8_od_blocks_\\d{4}\\.rds$", full.names = TRUE), decreasing = TRUE)
 lodes_wac_raw <- if (length(wac_files) > 0) readRDS(wac_files[1]) else NULL
 lodes_od_raw  <- if (length(od_files) > 0) readRDS(od_files[1]) else NULL
+log_msg("  Extension #2 LODES8 WAC cache: ", if (length(wac_files) > 0) basename(wac_files[1]) else "none found",
+        " | OD cache: ", if (length(od_files) > 0) basename(od_files[1]) else "none found")
 
-# Helper for safe optional ACS columns
-# Helper for safe optional ACS columns inside dplyr verbs (.data is the filtered data)
 safe_vec <- function(df, col_name) {
   if (col_name %in% names(df)) coalesce(as.numeric(df[[col_name]]), 0) else rep(0, nrow(df))
 }
 
 # 2. Project & Wrangle Census Tracts + Merge 2020 RUCA Codes (EPSG:5070) ----
+log_msg("Step 2/8: Projecting & wrangling Census tracts and merging 2020 RUCA codes...")
 tract_pops_clean <- tract_pops_raw |>
   st_transform(5070) |>
   st_make_valid() |>
@@ -98,19 +109,19 @@ tract_pops_clean <- tract_pops_raw |>
     ),
     is_low_density    = tract_pop_density < 500,
     state_fip         = stringr::str_sub(GEOID, 1, 2),
-    med_hh_inc        = if ("med_hh_incE" %in% names(cur_data())) as.numeric(cur_data()[["med_hh_incE"]]) else NA_real_,
-    hh_total          = safe_vec(cur_data(), "hh_totalE"),
-    pov_univ          = safe_vec(cur_data(), "pov_univE"),
-    pov_below         = safe_vec(cur_data(), "pov_belowE"),
-    lf_civ            = safe_vec(cur_data(), "lf_civE"),
-    lf_unemp          = safe_vec(cur_data(), "lf_unempE"),
-    emp_total         = safe_vec(cur_data(), "emp_totalE"),
-    emp_ag_mining     = safe_vec(cur_data(), "ag_min_mE") + safe_vec(cur_data(), "ag_min_fE"),
-    emp_const         = safe_vec(cur_data(), "const_mE") + safe_vec(cur_data(), "const_fE"),
-    emp_mfg           = safe_vec(cur_data(), "mfg_mE") + safe_vec(cur_data(), "mfg_fE"),
-    emp_retail        = safe_vec(cur_data(), "retail_mE") + safe_vec(cur_data(), "retail_fE"),
-    emp_ed_hlth       = safe_vec(cur_data(), "ed_hlth_mE") + safe_vec(cur_data(), "ed_hlth_fE")
-  ) |> 
+    med_hh_inc        = if ("med_hh_incE" %in% names(pick(everything()))) as.numeric(pick(everything())[["med_hh_incE"]]) else NA_real_,
+    hh_total          = safe_vec(pick(everything()), "hh_totalE"),
+    pov_univ          = safe_vec(pick(everything()), "pov_univE"),
+    pov_below         = safe_vec(pick(everything()), "pov_belowE"),
+    lf_civ            = safe_vec(pick(everything()), "lf_civE"),
+    lf_unemp          = safe_vec(pick(everything()), "lf_unempE"),
+    emp_total         = safe_vec(pick(everything()), "emp_totalE"),
+    emp_ag_mining     = safe_vec(pick(everything()), "ag_min_mE") + safe_vec(pick(everything()), "ag_min_fE"),
+    emp_const         = safe_vec(pick(everything()), "const_mE") + safe_vec(pick(everything()), "const_fE"),
+    emp_mfg           = safe_vec(pick(everything()), "mfg_mE") + safe_vec(pick(everything()), "mfg_fE"),
+    emp_retail        = safe_vec(pick(everything()), "retail_mE") + safe_vec(pick(everything()), "retail_fE"),
+    emp_ed_hlth       = safe_vec(pick(everything()), "ed_hlth_mE") + safe_vec(pick(everything()), "ed_hlth_fE")
+  ) |>
   st_drop_geometry() |>
   select(
     tract_geoid = GEOID,
@@ -127,11 +138,11 @@ tract_pops_clean <- tract_pops_raw |>
     is_ruca_rural    = coalesce(ruca_primary >= 7L & ruca_primary <= 10L, FALSE),
     is_ruca_nonmetro = coalesce(ruca_primary >= 4L & ruca_primary <= 10L, FALSE)
   )
+log_msg("  Cleaned ", nrow(tract_pops_clean), " non-empty Census tracts.")
 
-# Fix CT (state_fip == "09") 2020 Decennial block tract_geoids to match Planning Region tract_geoids
 ct_block_idx <- which(decennial_block_points$state_fip == "09")
 if (length(ct_block_idx) > 0) {
-  message("Re-indexing ", length(ct_block_idx), " Connecticut 2020 blocks to Planning Region tracts...")
+  log_msg("  Re-indexing ", length(ct_block_idx), " Connecticut 2020 blocks to Planning Region tracts...")
   ct_tracts_curr <- tract_pops_raw |>
     filter(stringr::str_sub(GEOID, 1, 2) == "09") |>
     st_transform(5070) |>
@@ -149,10 +160,10 @@ if (length(ct_block_idx) > 0) {
 }
 
 rm(tract_pops_raw, ruca_df)
-gc()
+invisible(gc())
 
 # 3. Classify Block Points by Census Urban Area Membership & Identify >=50k Urbanized Areas ----
-message("Classifying 2020 block points against Census Urban Areas (Extension #3)...")
+log_msg("Step 3/8: Classifying 2020 block points against Census Urban Areas (Extension #3)...")
 ua_id_col <- intersect(c("UACE", "UACE20", "UACE10", "GEOID", "GEOID20"), names(urban_areas_raw))[1]
 if (is.na(ua_id_col)) {
   stop("Could not find Urban Area ID column in urban_areas_raw. Columns: ", paste(names(urban_areas_raw), collapse = ", "))
@@ -165,7 +176,7 @@ ua_5070 <- urban_areas_raw |>
   select(UACE)
 
 rm(urban_areas_raw)
-gc()
+invisible(gc())
 
 ua_idx_per_block <- st_intersects(decennial_block_points, ua_5070)
 first_ua_idx <- vapply(ua_idx_per_block, \(x) if (length(x) > 0L) x[1L] else NA_integer_, integer(1))
@@ -184,11 +195,13 @@ ua_pops <- decennial_block_points |>
 
 ua_50k <- ua_5070 |>
   inner_join(ua_pops |> filter(ua_pop_2020 >= 50000), by = c("UACE" = "uace"))
+log_msg("  Classified blocks across ", nrow(ua_5070), " Urban Areas (", nrow(ua_50k), " with pop >= 50,000).")
 
 rm(ua_idx_per_block, first_ua_idx, ua_pops)
-gc()
+invisible(gc())
 
 # 4. Project & Wrangle School District Boundaries ----
+log_msg("Step 4/8: Projecting & wrangling TIGER/Line school district boundaries...")
 if (!"tiger_district_type" %in% names(districts_geo_raw)) {
   districts_geo_raw <- districts_geo_raw |>
     mutate(tiger_district_type = NA_character_)
@@ -202,21 +215,22 @@ districts_geo <- districts_geo_raw |>
   filter(!st_is_empty(geometry)) |>
   distinct(GEOID, .keep_all = TRUE) |>
   mutate(district_area_mi2 = set_units(st_area(geometry), "mi^2"))
+log_msg("  Prepared ", nrow(districts_geo), " school district geometries.")
 
 rm(districts_geo_raw)
-gc()
+invisible(gc())
 
 districts_clean <- districts_geo |>
   select(GEOID, state_fip, district_name, district_area_mi2)
 
-# 5. State-by-State Block-Dasymetric, Extension #2 LODES & Extension #3 Apportionments ----
-message("Computing state-by-state block-dasymetric, LODES8 & urban core metrics...")
+# 5. State-by-State Block-Dasymetric & Extension #3 Apportionments ----
+log_msg("Step 5/8: Building state spatial tasks & running parallel block-dasymetric apportionments...")
 
 blocks_by_state    <- split(decennial_block_points, decennial_block_points$state_fip)
 districts_by_state <- split(districts_clean |> select(GEOID, district_name), districts_clean$state_fip)
 
 rm(decennial_block_points)
-gc()
+invisible(gc())
 
 state_fips <- names(districts_by_state)
 blk_counts <- vapply(state_fips, \(f) if (!is.null(blocks_by_state[[f]])) nrow(blocks_by_state[[f]]) else 0L, integer(1))
@@ -233,9 +247,10 @@ state_tasks <- map(state_fips, \(fip) {
     ua_50k_st = ua_50k[lengths(st_intersects(ua_50k, st_buf)) > 0, ]
   )
 })
+log_msg("  Prepared ", length(state_tasks), " state spatial tasks; launching future_map across ", spatial_workers, " workers.")
 
 rm(blocks_by_state, districts_by_state, ua_5070, ua_50k)
-gc()
+invisible(gc())
 
 state_results <- future_map(
   state_tasks,
@@ -248,7 +263,6 @@ state_results <- future_map(
     joined_sf <- st_join(blk_sub, dist_sub, join = st_intersects, left = FALSE)
     if (nrow(joined_sf) == 0) return(NULL)
     
-    # 5A. Population-weighted district centroids -> distance to nearest Urban Area & >=50k Urbanized Area
     coords <- st_coordinates(joined_sf)
     pop_centroids <- joined_sf |>
       st_drop_geometry() |>
@@ -275,7 +289,6 @@ state_results <- future_map(
         dist_50k_ua_mi = as.numeric(set_units(set_units(dist_50k_m, "m"), "mi"))
       )
     
-    # 5B. Tract denominators & block-dasymetric tract-to-district-by-urban-area pieces
     blk_df <- joined_sf |> st_drop_geometry()
     
     tract_denoms <- blk_sub |>
@@ -301,19 +314,22 @@ state_results <- future_map(
       group_by(GEOID, district_name, tract_geoid, in_urban_area) |>
       summarize(dasymetric_prop = pmin(sum(blk_weight, na.rm = TRUE), 1.0), .groups = "drop")
     
-    # 5C. Exact block_geoid -> GEOID lookup for Extension #2 LODES8
     blk_geoid_map <- blk_df |>
       select(block_geoid, GEOID) |>
       distinct(block_geoid, .keep_all = TRUE)
+    
+    message("  [", task$fip, "] Apportioned ", nrow(blk_sub), " blocks -> ", nrow(pieces), " tract-district pieces")
+    flush.console()
     
     list(pieces = pieces, dist_metrics = dist_metrics, blk_geoid_map = blk_geoid_map)
   },
   .options = furrr_options(seed = TRUE, globals = FALSE)
 ) |>
   compact()
+log_msg("  Completed state spatial joins across ", length(state_results), " state partitions.")
 
 rm(state_tasks)
-gc()
+invisible(gc())
 
 dasymetric_pieces <- map(state_results, "pieces") |>
   bind_rows() |>
@@ -330,11 +346,13 @@ district_distances <- map(state_results, "dist_metrics") |>
 blk_geoid_lookup <- map(state_results, "blk_geoid_map") |>
   bind_rows() |>
   distinct(block_geoid, .keep_all = TRUE)
+log_msg("  Assembled ", nrow(dasymetric_pieces), " dasymetric pieces and ", nrow(blk_geoid_lookup), " block-to-GEOID mappings.")
 
 rm(state_results)
-gc()
+invisible(gc())
 
 # 6. Summarize District-Level Rurality, Extension #3 & Extension #2 ACS Metrics ----
+log_msg("Step 6a/8: Summarizing district-level rurality, Extension #3 & Extension #2 ACS metrics...")
 districts_rural_summary <- dasymetric_pieces |>
   group_by(GEOID, district_name) |>
   summarize(
@@ -352,7 +370,6 @@ districts_rural_summary <- dasymetric_pieces |>
       weighted.mean(tract_pop_density, est_piece_pop_5_17, na.rm = TRUE),
       NA_real_
     ),
-    # Extension #2 ACS socioeconomic & resident industry mix
     est_med_hh_inc          = if_else(sum(hh_total * dasymetric_prop, na.rm = TRUE) > 0,
                                       weighted.mean(med_hh_inc, hh_total * dasymetric_prop, na.rm = TRUE), NA_real_),
     acs_poverty_pct         = if_else(sum(pov_univ * dasymetric_prop, na.rm = TRUE) > 0,
@@ -374,12 +391,21 @@ districts_rural_summary <- dasymetric_pieces |>
   )
 
 rm(dasymetric_pieces, tract_pops_clean, district_distances)
-gc()
+invisible(gc())
 
-# 6B. Summarize Extension #2 LODES8 Workplace Mix & Commute Self-Containment ----
+# 6B. Low-Memory Extension #2 LODES8 Workplace Mix & Commute Self-Containment ----
+log_msg("Step 6b/8: Aggregating Extension #2 LODES8 workplace mix & commute self-containment...")
+blk_vec <- blk_geoid_lookup$GEOID
+names(blk_vec) <- blk_geoid_lookup$block_geoid
+
 lodes_wac_dist <- if (!is.null(lodes_wac_raw) && nrow(lodes_wac_raw) > 0) {
-  lodes_wac_raw |>
-    inner_join(blk_geoid_lookup, by = "block_geoid") |>
+  wac_sub <- lodes_wac_raw |>
+    mutate(GEOID = unname(blk_vec[block_geoid])) |>
+    filter(!is.na(GEOID))
+  rm(lodes_wac_raw)
+  invisible(gc())
+  
+  res_wac <- wac_sub |>
     group_by(GEOID) |>
     summarize(
       work_total_jobs   = sum(work_jobs, na.rm = TRUE),
@@ -390,33 +416,59 @@ lodes_wac_dist <- if (!is.null(lodes_wac_raw) && nrow(lodes_wac_raw) > 0) {
       work_pct_hi_earn  = if_else(work_total_jobs > 0, 100 * sum(work_ce03, na.rm = TRUE) / work_total_jobs, NA_real_),
       .groups = "drop"
     )
+  log_msg("  Summarized LODES8 WAC across ", nrow(res_wac), " districts.")
+  res_wac
 } else {
+  rm(lodes_wac_raw)
+  invisible(gc())
+  log_msg("  No LODES8 WAC records available; skipping WAC district summary.")
   tibble(GEOID = character())
 }
 
 lodes_commute_dist <- if (!is.null(lodes_od_raw) && nrow(lodes_od_raw) > 0) {
-  lodes_od_raw |>
-    left_join(blk_geoid_lookup |> rename(h_geoid = GEOID), by = c("h_blk" = "block_geoid")) |>
-    left_join(blk_geoid_lookup |> rename(w_geoid = GEOID), by = c("w_blk" = "block_geoid")) |>
-    filter(!is.na(h_geoid)) |>
-    group_by(GEOID = h_geoid) |>
-    summarize(
-      resident_workers_jobs    = sum(jobs, na.rm = TRUE),
-      internal_commuter_jobs   = sum(jobs[!is.na(w_geoid) & h_geoid == w_geoid], na.rm = TRUE),
-      commute_self_contain_pct = if_else(resident_workers_jobs > 0,
-                                         100 * internal_commuter_jobs / resident_workers_jobs, NA_real_),
-      .groups = "drop"
+  h_g <- unname(blk_vec[lodes_od_raw$h_blk])
+  w_g <- unname(blk_vec[lodes_od_raw$w_blk])
+  keep_idx <- which(!is.na(h_g))
+  
+  if (length(keep_idx) > 0) {
+    od_sub <- tibble(
+      h_geoid = h_g[keep_idx],
+      w_geoid = w_g[keep_idx],
+      jobs    = lodes_od_raw$jobs[keep_idx]
     )
+    rm(lodes_od_raw, h_g, w_g, keep_idx)
+    invisible(gc())
+    
+    res_od <- od_sub |>
+      group_by(GEOID = h_geoid) |>
+      summarize(
+        resident_workers_jobs    = sum(jobs, na.rm = TRUE),
+        internal_commuter_jobs   = sum(jobs[!is.na(w_geoid) & h_geoid == w_geoid], na.rm = TRUE),
+        commute_self_contain_pct = if_else(resident_workers_jobs > 0,
+                                           100 * internal_commuter_jobs / resident_workers_jobs, NA_real_),
+        .groups = "drop"
+      )
+    log_msg("  Summarized LODES8 OD commute flows across ", nrow(res_od), " origin districts.")
+    res_od
+  } else {
+    rm(lodes_od_raw, h_g, w_g, keep_idx)
+    invisible(gc())
+    tibble(GEOID = character())
+  }
 } else {
+  rm(lodes_od_raw)
+  invisible(gc())
+  log_msg("  No LODES8 OD records available; skipping commute self-containment summary.")
   tibble(GEOID = character())
 }
 
-rm(lodes_wac_raw, lodes_od_raw, blk_geoid_lookup)
-gc()
+rm(blk_geoid_lookup, blk_vec)
+invisible(gc())
 
 # 6C. Clean Extension #1 edfinr Finance Data ----
+log_msg("Step 6c/8: Cleaning Extension #1 edfinr finance & CWIFT data...")
 fin_clean <- if (!is.null(fin_raw) && nrow(fin_raw) > 0) {
-  fin_raw |>
+  res_fin <- fin_raw |>
     mutate(GEOID = stringr::str_pad(as.character(ncesid), 7, pad = "0")) |>
     transmute(
       GEOID,
@@ -435,14 +487,18 @@ fin_clean <- if (!is.null(fin_raw) && nrow(fin_raw) > 0) {
       saipe_stpov_pct  = if ("stpov_pct" %in% names(fin_raw)) as.numeric(stpov_pct) * 100 else NA_real_
     ) |>
     distinct(GEOID, .keep_all = TRUE)
+  log_msg("  Cleaned ", nrow(res_fin), " edfinr finance records.")
+  res_fin
 } else {
+  log_msg("  No edfinr finance records available; skipping finance merge.")
   tibble(GEOID = character())
 }
 
 rm(fin_raw)
-gc()
+invisible(gc())
 
 # 7. Clean & Merge NCES CCD Directory Data ----
+log_msg("Step 7/8: Cleaning NCES CCD directory & assembling spatial checkpoint...")
 nces_ccd_cleaned <- nces_ccd_raw |>
   mutate(
     GEOID = stringr::str_pad(as.character(leaid), 7, pad = "0"),
@@ -523,9 +579,10 @@ districts_complete_sf <- districts_complete |>
 
 spatial_checkpoint_path <- file.path(cache_dir, paste0("districts_complete_sf_", year_this, ".rds"))
 saveRDS(districts_complete_sf, spatial_checkpoint_path)
-message("Saved spatial checkpoint (with Extensions #1, #2 & #3 metrics) to: ", spatial_checkpoint_path)
+log_msg("  Saved spatial checkpoint (", nrow(districts_complete_sf), " districts) to: ", spatial_checkpoint_path)
 
 # 8. Export Tabular Summary ----
+log_msg("Step 8/8: Writing CSV and RDS tabular summaries...")
 districts_tabular <- districts_complete_sf |>
   st_drop_geometry() |>
   relocate(GEOID, state_abbr, state_name, lea_name, .before = 1) |>
@@ -537,4 +594,4 @@ rds_out_path <- file.path(output_dir, paste0("US_School_Districts_Rural_Summary_
 write_csv(districts_tabular, csv_out_path)
 saveRDS(districts_tabular, rds_out_path)
 plan(sequential)
-message("Saved tabular summaries to: ", csv_out_path, " and ", rds_out_path)
+log_msg("Done! Saved tabular summaries to: ", csv_out_path, " and ", rds_out_path)
