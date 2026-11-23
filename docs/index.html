@@ -203,6 +203,30 @@
     .assess-legend span { display: inline-flex; align-items: center; gap: 4px; }
     .dot { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
 
+    .info-btn {
+      background: #1e293b; color: #cbd5e1; border: 1px solid #475569;
+      padding: 5px 9px; border-radius: 6px; font-size: 12px; font-weight: 600;
+    }
+    .info-btn:hover { background: #334155; color: #fff; }
+    .inline-info-link {
+      background: none; border: none; color: #15803d; font-size: 11px;
+      font-weight: 700; text-decoration: underline; padding: 0; cursor: pointer;
+    }
+    .inline-info-link:hover { color: #166534; background: none; }
+    .guide-content { text-align: left; font-size: 12.5px; line-height: 1.5; color: #1e293b; }
+    .guide-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; }
+    .guide-tab {
+      background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1;
+      padding: 4px 10px; border-radius: 6px; font-size: 11.5px; font-weight: 600;
+    }
+    .guide-tab.active { background: #2e6f40; color: #fff; border-color: #2e6f40; }
+    .guide-panel h3 { font-size: 14px; margin: 10px 0 4px; color: #0f172a; }
+    .guide-panel h3:first-child { margin-top: 0; }
+    .guide-panel p { margin-bottom: 8px; color: #334155; }
+    .guide-panel ul { margin: 4px 0 10px 18px; color: #334155; }
+    .guide-panel li { margin-bottom: 4px; }
+    .guide-code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; background: #f1f5f9; padding: 1px 5px; border-radius: 4px; }
+
     /* Modal (300 DPI State Map & Scatterplot) */
     .modal-backdrop {
       position: fixed; inset: 0; background: rgba(15, 23, 42, 0.72);
@@ -235,6 +259,7 @@
     <select id="stateSelect"><option value="ALL">All States (National View)</option></select>
     <input type="text" id="districtSearch" list="districtDatalist" placeholder="Search school district..." />
     <datalist id="districtDatalist"></datalist>
+    <button id="btnMetricsGuide" class="info-btn" title="Definitions & methodology for all rurality, finance, economy & math metrics">Metrics Guide</button>
     <button id="btnShareLink" title="Copy direct link to current state/district view">Copy Link</button>
     <button id="btnScatter" title="Plot Rurality Metric vs Math Proficiency">Rurality × Math Plot</button>
     <button id="btnStatePng" title="View 300 DPI State Map">300 DPI state map</button>
@@ -386,7 +411,7 @@
 
     <div id="dFinanceEconSection">
       <div class="section-title">
-        <span>District Finance &amp; Local Economy</span>
+        <span>District Finance &amp; Local Economy <button type="button" class="inline-info-link" onclick="openMetricsGuide('finance')">(How computed?)</button></span>
         <span class="source-tag" id="dEconSource">F-33 / CWIFT &amp; ACS / LODES8</span>
       </div>
       <div class="econ-grid">
@@ -1029,6 +1054,70 @@
     return { abbr: bestAbbr, source: "center of map window" };
   }
 
+  window.openMetricsGuide = function(activeTab = "rurality") {
+    document.getElementById("modalTitle").textContent = "Metrics & Methodology Guide";
+    document.getElementById("modalDownloadLink").style.display = "none";
+
+    const tabs = [
+      { id: "rurality", label: "Rurality & Remoteness" },
+      { id: "finance", label: "Finance & CWIFT" },
+      { id: "economy", label: "Economy & Commutes" },
+      { id: "math", label: "Math Proficiency" }
+    ];
+
+    const tabButtons = tabs.map(t =>
+      `<button type="button" class="guide-tab ${t.id === activeTab ? "active" : ""}" onclick="openMetricsGuide('${t.id}')">${t.label}</button>`
+    ).join("");
+
+    let bodyHtml = "";
+    if (activeTab === "rurality") {
+      bodyHtml = `
+        <h3>Block-Dasymetric Youth Share (<span class="guide-code">pct_pop_rural</span>)</h3>
+        <p>Apportions ACS 5-year school-aged youth (ages 5–17, Table B09001) from Census tracts into school districts using 2020 Decennial Census block interior point population weights (<span class="guide-code">P1_001N</span>, with housing unit and equal-block fallbacks). Districts are scored on the share of estimated youth in low-density tracts (<strong>&lt; 500 people/sq mi</strong>).</p>
+        <h3>Alternative Rurality &amp; Remoteness Indicators</h3>
+        <ul>
+          <li><strong>Outside Census Urban Area (<span class="guide-code">pct_youth_outside_ua</span>):</strong> Share of block-apportioned youth (ages 5–17) in 2020 blocks outside official Census Urban Areas.</li>
+          <li><strong>USDA ERS 2020 RUCA (<span class="guide-code">pct_youth_ruca_rural</span> &amp; <span class="guide-code">pct_youth_ruca_nonmetro</span>):</strong> Youth share in Rural RUCA tracts (Codes 7–10) and Nonmetropolitan RUCA tracts (Codes 4–10).</li>
+          <li><strong>Distance to Urban Areas (<span class="guide-code">dist_any_ua_mi</span> &amp; <span class="guide-code">dist_50k_ua_mi</span>):</strong> Planar (EPSG:5070) distance in miles from each district's block-population-weighted centroid to the nearest Urban Area or Urbanized Area (&ge; 50,000 population).</li>
+          <li><strong>Locale Mismatch Flag:</strong> Highlights districts where NCES Urban-Centric Locale codes diverge from block-dasymetric youth rurality (e.g., City/Suburb with &ge;15% rural youth, Town with &ge;50% rural youth, or Rural with &lt;50% rural youth).</li>
+        </ul>`;
+    } else if (activeTab === "finance") {
+      bodyHtml = `
+        <h3>School District Finance &amp; Cost Adjustment (<span class="guide-code">edfinr</span> / NCES F-33)</h3>
+        <p>Sourced from NCES CCD F-33 district finance data harmonized via <span class="guide-code">edfinr</span> (removing pass-through transfer double-counting and joining SAIPE &amp; CWIFT indicators):</p>
+        <ul>
+          <li><strong>Rev / Pupil (<span class="guide-code">rev_total_pp</span>) &amp; Local Share (<span class="guide-code">pct_rev_local</span>):</strong> Total per-pupil revenue and the percentage coming from local sources.</li>
+          <li><strong>Current Exp / Pupil (<span class="guide-code">exp_cur_pp</span>) &amp; CWIFT-Adjusted Exp (<span class="guide-code">exp_cur_cwift_pp</span>):</strong> Per-pupil current operating expenditure, plus a cost-adjusted figure dividing current per-pupil spending by the district's Comparable Wage Index for Teachers (<span class="guide-code">cwift_est</span>).</li>
+          <li><strong>CWIFT Index (<span class="guide-code">cwift_est</span>):</strong> Measures regional wage competitiveness for school personnel across labor markets.</li>
+          <li><strong>SAIPE Child Poverty (<span class="guide-code">saipe_stpov_pct</span>):</strong> Model-based school-age poverty rate from the US Census Small Area Income and Poverty Estimates program.</li>
+        </ul>`;
+    } else if (activeTab === "economy") {
+      bodyHtml = `
+        <h3>Socioeconomic, Industry Mix &amp; Commute Flows (ACS &amp; LEHD LODES8)</h3>
+        <ul>
+          <li><strong>Est. Med. HH Income (<span class="guide-code">est_med_hh_inc</span>) &amp; ACS Poverty (<span class="guide-code">acs_poverty_pct</span>):</strong> Tract-level ACS 5-year estimates apportioned to districts via block-dasymetric weights (household-weighted for median household income; poverty-universe-weighted for poverty rate).</li>
+          <li><strong>Ag / Forestry Jobs (<span class="guide-code">work_pct_ag_for</span>) &amp; Mfg Jobs (<span class="guide-code">work_pct_mfg</span>):</strong> Share of jobs physically located inside district boundaries from LEHD LODES8 Workplace Area Characteristics (WAC, <span class="guide-code">C000</span>, <span class="guide-code">CNS01</span>, <span class="guide-code">CNS05</span>).</li>
+          <li><strong>Res. Ag/Min (<span class="guide-code">res_pct_ag_mining</span>):</strong> Share of employed residents in Agriculture, Forestry, Fishing, Hunting, and Mining from ACS Table <span class="guide-code">C24030</span>.</li>
+          <li><strong>Commute Self-Contain. (<span class="guide-code">commute_self_contain_pct</span>):</strong> Share of working residents living inside the district whose workplace is also inside the same district based on LEHD LODES8 Origin-Destination (<span class="guide-code">od</span>) block flows.</li>
+        </ul>`;
+    } else {
+      bodyHtml = `
+        <h3>Two-Tier Grade 3, 5 &amp; 8 Math Proficiency</h3>
+        <ul>
+          <li><strong>Tier 1 (National EDFacts Baseline):</strong> District-level math proficiency for Grades 3, 5, and 8 from EDFacts (<span class="guide-code">Not Proficient</span> vs. <span class="guide-code">Proficient or Above</span>). Interval-reported cells use midpoints and are noted when applicable.</li>
+          <li><strong>Tier 2 (State Report Card Overrides):</strong> Where standardized state assessment CSVs are provided (such as Idaho ISAT), full 4-level proficiency distributions replace Tier 1 baselines.</li>
+          <li><strong>Privacy Suppression:</strong> Small cohorts masked for student privacy display a suppression note rather than estimated rates.</li>
+        </ul>`;
+    }
+
+    document.getElementById("modalBody").innerHTML = `
+      <div class="guide-content">
+        <div class="guide-tabs">${tabButtons}</div>
+        <div class="guide-panel">${bodyHtml}</div>
+      </div>`;
+    document.getElementById("modalBackdrop").classList.remove("hidden");
+  };
+
   function openScatterModal() {
     if (!state.geojson) return;
     const stFilter = state.selectedState;
@@ -1292,6 +1381,7 @@
     document.getElementById("modalBackdrop").classList.remove("hidden");
   });
 
+  document.getElementById("btnMetricsGuide").addEventListener("click", () => openMetricsGuide("rurality"));
   document.getElementById("btnScatter").addEventListener("click", openScatterModal);
   document.getElementById("btnCloseModal").addEventListener("click", () => {
     document.getElementById("modalBackdrop").classList.add("hidden");
