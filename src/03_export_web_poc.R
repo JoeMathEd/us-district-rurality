@@ -110,10 +110,10 @@ districts_enriched <- districts_sf |>
     geometry
   )
 
-# Simplify geometries in EPSG:5070 (dTolerance = 500m) and transform to WGS84
-message("Simplifying district geometries for fast web rendering...")
+# Simplify geometries in EPSG:5070 (dTolerance = 120m preserves rivers & survey lines)
+message("Simplifying district geometries for crisp web rendering...")
 districts_web <- districts_enriched |>
-  st_simplify(preserveTopology = TRUE, dTolerance = 500) |>
+  st_simplify(preserveTopology = TRUE, dTolerance = 120) |>
   st_transform(4326)
 
 out_dir <- file.path(web_dir, "data")
@@ -121,7 +121,13 @@ dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 geojson_path <- file.path(out_dir, "districts_poc.geojson")
 
 if (file.exists(geojson_path)) file.remove(geojson_path)
-st_write(districts_web, geojson_path, driver = "GeoJSON", quiet = TRUE)
+st_write(
+  districts_web,
+  geojson_path,
+  driver = "GeoJSON",
+  layer_options = c("COORDINATE_PRECISION=5"),
+  quiet = TRUE
+)
 
 # Write lightweight metadata manifest for the web frontend
 meta_path <- file.path(out_dir, "rurality_meta.json")

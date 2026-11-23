@@ -973,6 +973,7 @@
     });
 
     state.layer = L.geoJSON(state.geojson, {
+      smoothFactor: 0.35,
       style: styleFeature,
       onEachFeature: (feature, layer) => {
         const p = feature.properties;
