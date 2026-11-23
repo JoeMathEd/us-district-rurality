@@ -36,3 +36,6 @@ logs/
 
 # Allow standardized state assessment override CSVs
 !data_raw/state_assessments/*.csv
+
+# Allow USDA RUCA codes
+!data_raw/RUCA-codes-2020-tract.csv

@@ -14,6 +14,7 @@ cache_dir <- "/bsuscratch/joechampion/district-rurality/data_cache"
 year_this <- as.integer(trimws(readLines(file.path(cache_dir, "latest_cached_year.txt"), n = 1)))
 
 # 1. Load cached spatial checkpoint, tract pops, and 2020 block points ----
+message("Loading cached spatial checkpoint, tract pops, and 2020 block points ... ")
 districts_sf <- readRDS(file.path(cache_dir, paste0("districts_complete_sf_", year_this, ".rds"))) |>
   filter(state_fip == "16", !st_is_empty(geometry)) |>
   st_transform(5070)
@@ -82,50 +83,36 @@ ua_region <- ua_region |>
 ua_50k <- ua_region |> filter(coalesce(ua_pop_2020, 0) >= 50000)
 
 
-# 3. Fetch & cache USDA ERS Tract-Level RUCA Codes (auto-discover current ERS URL) ----
-ruca_cache_path <- file.path(cache_dir, "ruca_tracts_cached.rds")
+# 3. Load & cache USDA ERS 2020 Tract-Level RUCA Codes ----
+ruca_cache_path <- file.path(cache_dir, "ruca_tracts_2020.rds")
+local_ruca_csv  <- file.path(Sys.getenv("HOME"), "us-district-rurality", "data_raw", "RUCA-codes-2020-tract.csv")
+# source = https://www.ers.usda.gov/data-products/rural-urban-commuting-area-codes
+
 if (file.exists(ruca_cache_path)) {
   ruca_df <- readRDS(ruca_cache_path)
 } else {
-  message("Discovering current USDA ERS RUCA tract dataset URL...")
-  ers_page <- rvest::read_html("https://www.ers.usda.gov/data-products/rural-urban-commuting-area-codes")
-  links <- ers_page |>
-    rvest::html_elements("a") |>
-    rvest::html_attr("href") |>
-    na.omit() |>
-    xml2::url_absolute("https://www.ers.usda.gov")
-  
-  # Prefer tract-level CSV (2020 or 2010), falling back to XLSX if needed
-  csv_links <- links[stringr::str_detect(tolower(links), "ruca.*tract.*\\.csv$|ruca20.*\\.csv$")]
-  xlsx_links <- links[stringr::str_detect(tolower(links), "ruca.*tract.*\\.xlsx$|ruca20.*\\.xlsx$")]
-  
-  if (length(csv_links) > 0) {
-    message("Downloading RUCA CSV from: ", csv_links[1])
-    ruca_raw <- readr::read_csv(csv_links[1], show_col_types = FALSE)
-  } else if (length(xlsx_links) > 0) {
-    message("Downloading RUCA XLSX from: ", xlsx_links[1])
-    tmp_xlsx <- tempfile(fileext = ".xlsx")
-    download.file(xlsx_links[1], tmp_xlsx, mode = "wb", quiet = TRUE)
-    # ERS XLSX files typically have a 1-row title banner above headers; detect header row dynamically
-    preview <- readxl::read_excel(tmp_xlsx, n_max = 5, col_names = FALSE)
-    skip_rows <- which(apply(preview, 1, \(r) any(stringr::str_detect(tolower(as.character(r)), "tract|fips"), na.rm = TRUE)))[1] - 1L
-    ruca_raw <- readxl::read_excel(tmp_xlsx, skip = max(0L, skip_rows))
-  } else {
-    stop("Could not locate a RUCA tract CSV/XLSX link on the USDA ERS page. Found links: ",
-         paste(links[stringr::str_detect(tolower(links), "ruca")], collapse = ", "))
+  if (!file.exists(local_ruca_csv)) {
+    stop("Missing ", local_ruca_csv, ". Ensure RUCA-codes-2020-tract.csv is committed and pulled.")
   }
+  message("Loading USDA ERS 2020 RUCA tract dataset from: ", local_ruca_csv)
+  ruca_raw <- readr::read_csv(local_ruca_csv, show_col_types = FALSE)
   
   geoid_col <- names(ruca_raw)[stringr::str_detect(tolower(names(ruca_raw)), "tract.*fips|fips.*tract|geoid")][1]
   prim_col  <- names(ruca_raw)[stringr::str_detect(tolower(names(ruca_raw)), "primary.*ruca|ruca1")][1]
   
+  if (is.na(geoid_col) || is.na(prim_col)) {
+    stop("Could not identify tract FIPS or primary RUCA columns in RUCA-codes-2020-tract.csv. Columns found: ",
+         paste(names(ruca_raw), collapse = ", "))
+  }
+  
   ruca_df <- ruca_raw |>
     transmute(
-      tract_geoid = stringr::str_pad(as.character(.data[[geoid_col]]), 11, pad = "0"),
+      tract_geoid  = stringr::str_pad(as.character(.data[[geoid_col]]), 11, pad = "0"),
       ruca_primary = as.integer(.data[[prim_col]])
     ) |>
     filter(!is.na(tract_geoid), !is.na(ruca_primary)) |>
     distinct(tract_geoid, .keep_all = TRUE)
-  
+  message("Saving cached RUCA codes...")
   saveRDS(ruca_df, ruca_cache_path)
 }
 
@@ -183,6 +170,7 @@ ext3_youth <- blk_joined |>
   )
 
 # 4B. Population-weighted district centroids -> Distance to nearest Urban Area & >=50k Urbanized Area
+message("computing population-weighted district centroids...")
 pop_centroids <- blk_joined |>
   mutate(
     x = st_coordinates(geometry)[, 1],
