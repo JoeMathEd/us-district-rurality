@@ -192,6 +192,15 @@
     .econ-box .val { font-size: 13.5px; font-weight: 700; margin-top: 2px; color: var(--text-main); }
     .econ-box .sub { font-size: 10.5px; color: var(--text-muted); margin-top: 2px; }
 
+    .section-title-btn {
+      background: none; border: none; padding: 0; color: var(--text-main);
+      font-size: 12.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;
+      text-align: left; cursor: pointer;
+    }
+    .section-title-btn:hover { color: #15803d; background: none; text-decoration: underline; }
+    .section-title-hint { font-size: 10.5px; font-weight: 600; color: #15803d; text-decoration: underline; }
+    .ruca-sub-note { font-size: 10px; color: #64748b; margin-top: 2px; line-height: 1.25; }
+
     /* Assessment Bars */
     .section-title { font-size: 12.5px; font-weight: 700; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 6px; }
     .source-tag { font-size: 10px; font-weight: 600; background: #e2e8f0; color: #334155; padding: 2px 6px; border-radius: 4px; white-space: nowrap; }
@@ -363,7 +372,10 @@
 
     <div>
       <div class="section-title">
-        <span>Spatial Rurality &amp; Remoteness Indicators</span>
+        <button type="button" class="section-title-btn" onclick="openMetricsGuide('rurality')" title="Open Rurality & Remoteness methodology guide">
+          <span>Spatial Rurality &amp; Remoteness Indicators</span>
+          <span class="section-title-hint">Guide</span>
+        </button>
         <span class="source-tag">Census &amp; USDA ERS</span>
       </div>
       <div class="meta-grid">
@@ -376,6 +388,7 @@
           <div class="lbl">USDA ERS 2020 RUCA</div>
           <div class="val" id="dRucaRural">—</div>
           <div class="sub" id="dRucaNonmetro">Nonmetro (4–10): —</div>
+          <div class="ruca-sub-note" id="dRucaTownMicro">Town/Micro (4–6): —</div>
         </div>
         <div class="meta-box">
           <div class="lbl">Dist. to Any Urban Area</div>
@@ -411,7 +424,10 @@
 
     <div id="dFinanceEconSection">
       <div class="section-title">
-        <span>District Finance &amp; Local Economy <button type="button" class="inline-info-link" onclick="openMetricsGuide('finance')">(How computed?)</button></span>
+        <button type="button" class="section-title-btn" onclick="openMetricsGuide('finance')" title="Open Finance & CWIFT methodology guide">
+          <span>District Finance &amp; Local Economy</span>
+          <span class="section-title-hint">Guide</span>
+        </button>
         <span class="source-tag" id="dEconSource">F-33 / CWIFT &amp; ACS / LODES8</span>
       </div>
       <div class="econ-grid">
@@ -450,7 +466,10 @@
 
     <div>
       <div class="section-title">
-        <span>Grade 3, 5 &amp; 8 Math Proficiency</span>
+        <button type="button" class="section-title-btn" onclick="openMetricsGuide('math')" title="Open Math Proficiency methodology guide">
+          <span>Grade 3, 5 &amp; 8 Math Proficiency</span>
+          <span class="section-title-hint">Guide</span>
+        </button>
         <span class="source-tag" id="dAssessSource"></span>
       </div>
       <div id="dAssessContainer" style="font-size:12px; color:var(--text-muted);">Select a district to view assessment breakdowns.</div>
@@ -1013,8 +1032,16 @@
 
     // Extension #3 Spatial Rurality & Remoteness Indicators
     document.getElementById("dOutsideUa").textContent = fmtPct(p.pct_youth_outside_ua);
+    const rucaRuralNum = toNum(p.pct_youth_ruca_rural);
+    const rucaNonmetroNum = toNum(p.pct_youth_ruca_nonmetro);
+    const rucaTownMicroNum = (!isNaN(rucaNonmetroNum) && !isNaN(rucaRuralNum))
+      ? Math.max(0, rucaNonmetroNum - rucaRuralNum)
+      : NaN;
     document.getElementById("dRucaRural").textContent = `${fmtPct(p.pct_youth_ruca_rural)} Rural (7–10)`;
     document.getElementById("dRucaNonmetro").textContent = `Nonmetro (4–10): ${fmtPct(p.pct_youth_ruca_nonmetro)}`;
+    document.getElementById("dRucaTownMicro").textContent = !isNaN(rucaTownMicroNum)
+      ? `Town/Micro (4–6): ${rucaTownMicroNum.toFixed(1)}%`
+      : "Town/Micro (4–6): N/A";
     document.getElementById("dDistAnyUa").textContent = fmtMiles(p.dist_any_ua_mi);
     document.getElementById("dDist50kUa").textContent = fmtMiles(p.dist_50k_ua_mi);
 
@@ -1077,7 +1104,7 @@
         <h3>Alternative Rurality &amp; Remoteness Indicators</h3>
         <ul>
           <li><strong>Outside Census Urban Area (<span class="guide-code">pct_youth_outside_ua</span>):</strong> Share of block-apportioned youth (ages 5–17) in 2020 blocks outside official Census Urban Areas.</li>
-          <li><strong>USDA ERS 2020 RUCA (<span class="guide-code">pct_youth_ruca_rural</span> &amp; <span class="guide-code">pct_youth_ruca_nonmetro</span>):</strong> Youth share in Rural RUCA tracts (Codes 7–10) and Nonmetropolitan RUCA tracts (Codes 4–10).</li>
+          <li><strong>USDA ERS 2020 RUCA (<span class="guide-code">pct_youth_ruca_rural</span> &amp; <span class="guide-code">pct_youth_ruca_nonmetro</span>):</strong> Youth share in Rural RUCA tracts (Codes 7–10) and Nonmetropolitan RUCA tracts (Codes 4–10). Because Codes 4–6 represent micropolitan and small-town commuting areas while Codes 7–10 represent small rural/non-core tracts, a district can have 100% Nonmetro (4–10) youth while nearly all of them sit in Codes 4–6 rather than Codes 7–10.</li>
           <li><strong>Distance to Urban Areas (<span class="guide-code">dist_any_ua_mi</span> &amp; <span class="guide-code">dist_50k_ua_mi</span>):</strong> Planar (EPSG:5070) distance in miles from each district's block-population-weighted centroid to the nearest Urban Area or Urbanized Area (&ge; 50,000 population).</li>
           <li><strong>Locale Mismatch Flag:</strong> Highlights districts where NCES Urban-Centric Locale codes diverge from block-dasymetric youth rurality (e.g., City/Suburb with &ge;15% rural youth, Town with &ge;50% rural youth, or Rural with &lt;50% rural youth).</li>
         </ul>`;
