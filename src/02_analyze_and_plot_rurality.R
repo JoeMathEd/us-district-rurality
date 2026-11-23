@@ -102,6 +102,27 @@ if (!isTRUE(recompute_spatial) && file.exists(spatial_checkpoint_path)) {
       is_low_density
     )
   
+  # Fix CT (state_fip == "09") 2020 Decennial block tract_geoids (legacy counties 09001-09015)
+  # to match 2024 ACS Planning Region tract_geoids (09110-09190) via spatial point-in-polygon
+  ct_block_idx <- which(decennial_block_points$state_fip == "09")
+  if (length(ct_block_idx) > 0) {
+    message("Re-indexing ", length(ct_block_idx), " Connecticut 2020 blocks to 2024 Planning Region tracts...")
+    ct_tracts_2024 <- tract_pops_raw |>
+      filter(stringr::str_sub(GEOID, 1, 2) == "09") |>
+      st_transform(st_crs(decennial_block_points)) |>
+      select(new_tract_geoid = GEOID)
+    
+    ct_reindexed <- st_join(
+      decennial_block_points[ct_block_idx, ] |> select(-tract_geoid),
+      ct_tracts_2024,
+      join = st_nearest_feature
+    ) |>
+      rename(tract_geoid = new_tract_geoid)
+    
+    decennial_block_points$tract_geoid[ct_block_idx] <- ct_reindexed$tract_geoid
+    rm(ct_tracts_2024, ct_reindexed)
+  }
+  
   rm(tract_pops_raw)
   gc()
   
@@ -125,6 +146,8 @@ if (!isTRUE(recompute_spatial) && file.exists(spatial_checkpoint_path)) {
   
   districts_clean <- districts_geo |>
     select(GEOID, state_fip, district_name, district_area_mi2)
+  
+  
   
   # 4. Calculate Block-Dasymetric Tract-to-District Weights (Memory-Safe Parallelized) ----
   message("Computing state-by-state block-dasymetric tract-to-district apportionments...")
