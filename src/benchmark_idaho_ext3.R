@@ -42,10 +42,15 @@ if (file.exists(ua_cache_path)) {
   saveRDS(ua_raw, ua_cache_path)
 }
 
+ua_id_col <- intersect(c("UACE", "UACE20", "UACE10", "GEOID", "GEOID20"), names(ua_raw))[1]
+if (is.na(ua_id_col)) {
+  stop("Could not find Urban Area ID column in ua_raw. Columns: ", paste(names(ua_raw), collapse = ", "))
+}
+
 ua_5070 <- ua_raw |>
   st_transform(5070) |>
   st_make_valid() |>
-  rename(UACE20 = any_of(c("UACE20", "UACE10", "GEOID20", "GEOID")))
+  rename(UACE = all_of(ua_id_col))
 
 # Keep Urban Areas within 200 miles of Idaho (captures Spokane WA, Logan/Ogden UT, Ontario OR, Missoula MT)
 id_buffer <- st_buffer(st_union(districts_sf), dist = set_units(200, "mi"))
@@ -60,19 +65,19 @@ regional_blocks <- readRDS(file.path(cache_dir, "decennial_block_points_2020.rds
 
 ua_pops <- st_join(
   regional_blocks |> select(blk_pop),
-  ua_region |> select(UACE20),
+  ua_region |> select(UACE),
   join = st_intersects,
   left = FALSE
 ) |>
   st_drop_geometry() |>
-  group_by(UACE20) |>
+  group_by(UACE) |>
   summarize(ua_pop_2020 = sum(blk_pop, na.rm = TRUE), .groups = "drop")
 
 rm(regional_blocks)
 gc()
 
 ua_region <- ua_region |>
-  left_join(ua_pops, by = "UACE20")
+  left_join(ua_pops, by = "UACE")
 
 ua_50k <- ua_region |> filter(coalesce(ua_pop_2020, 0) >= 50000)
 
