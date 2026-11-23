@@ -72,8 +72,8 @@ if (!isTRUE(recompute_spatial) && file.exists(spatial_checkpoint_path)) {
   decennial_block_points <- readRDS(blocks_path)
   
   # 2. Project & Wrangle Census Tracts (Equal-Area Albers EPSG:5070) ----
-  # Note: Total population density (< 500 people/mi^2) defines rural vs. urban tracts;
-  # ACS B09001 (ages 5-17) provides school-aged population counts for district aggregation.
+  sf_use_s2(FALSE)
+  
   tract_pops_clean <- tract_pops_raw |>
     st_transform(5070) |>
     st_make_valid() |>
@@ -102,6 +102,9 @@ if (!isTRUE(recompute_spatial) && file.exists(spatial_checkpoint_path)) {
       is_low_density
     )
   
+  rm(tract_pops_raw)
+  gc()
+  
   # 3. Project & Wrangle School District Boundaries ----
   if (!"tiger_district_type" %in% names(districts_geo_raw)) {
     districts_geo_raw <- districts_geo_raw |>
@@ -117,30 +120,39 @@ if (!isTRUE(recompute_spatial) && file.exists(spatial_checkpoint_path)) {
     distinct(GEOID, .keep_all = TRUE) |>
     mutate(district_area_mi2 = set_units(st_area(geometry), "mi^2"))
   
+  rm(districts_geo_raw)
+  gc()
+  
   districts_clean <- districts_geo |>
     select(GEOID, state_fip, district_name, district_area_mi2)
   
-  # 4. Calculate Block-Dasymetric Tract-to-District Weights (Parallelized) ----
   # 4. Calculate Block-Dasymetric Tract-to-District Weights (Memory-Safe Parallelized) ----
   message("Computing state-by-state block-dasymetric tract-to-district apportionments...")
   
-  # Pre-split blocks and districts by state_fip so furrr only ships 1 state per worker
   blocks_by_state    <- split(decennial_block_points, decennial_block_points$state_fip)
   districts_by_state <- split(districts_clean |> select(GEOID, district_name), districts_clean$state_fip)
   
-  # Remove the 8.1M-row national object before forking workers
   rm(decennial_block_points)
   gc()
   
-  # Order largest block-count states first to avoid tail latency
   state_fips <- names(districts_by_state)
   blk_counts <- vapply(state_fips, \(f) if (!is.null(blocks_by_state[[f]])) nrow(blocks_by_state[[f]]) else 0L, integer(1))
   state_fips <- state_fips[order(blk_counts, decreasing = TRUE)]
   
   state_tasks <- map(state_fips, \(fip) list(
+    fip  = fip,
     blk  = blocks_by_state[[fip]],
     dist = districts_by_state[[fip]]
   ))
+  
+  rm(blocks_by_state, districts_by_state)
+  gc()
+  
+  # Cap spatial workers at 6 to keep aggregate RSS < 25 GB; restore full n_workers for plotting
+  spatial_workers <- min(n_workers, 6L)
+  if (!is.na(spatial_workers) && spatial_workers > 1L) {
+    plan(multicore, workers = spatial_workers)
+  }
   
   dasymetric_pieces <- future_map(
     state_tasks,
@@ -150,7 +162,8 @@ if (!isTRUE(recompute_spatial) && file.exists(spatial_checkpoint_path)) {
       
       if (is.null(blk_sub) || is.null(dist_sub) || nrow(blk_sub) == 0 || nrow(dist_sub) == 0) return(NULL)
       
-      joined <- st_join(blk_sub, dist_sub, join = st_within, left = FALSE) |>
+      # st_intersects on points uses GEOS prepared predicates (~3x faster than st_within)
+      joined <- st_join(blk_sub, dist_sub, join = st_intersects, left = FALSE) |>
         st_drop_geometry()
       
       if (nrow(joined) == 0) return(NULL)
@@ -165,7 +178,7 @@ if (!isTRUE(recompute_spatial) && file.exists(spatial_checkpoint_path)) {
           .groups = "drop"
         )
       
-      joined |>
+      res <- joined |>
         left_join(tract_denoms, by = "tract_geoid") |>
         mutate(
           blk_weight = case_when(
@@ -177,8 +190,12 @@ if (!isTRUE(recompute_spatial) && file.exists(spatial_checkpoint_path)) {
         ) |>
         group_by(GEOID, district_name, tract_geoid) |>
         summarize(dasymetric_prop = pmin(sum(blk_weight, na.rm = TRUE), 1.0), .groups = "drop")
+      
+      message("  [", task$fip, "] Apportioned ", nrow(blk_sub), " blocks -> ", nrow(res), " tract-district pairs")
+      flush.console()
+      res
     },
-    .options = furrr_options(seed = TRUE)
+    .options = furrr_options(seed = TRUE, globals = FALSE)
   ) |>
     compact() |>
     bind_rows() |>
@@ -188,8 +205,13 @@ if (!isTRUE(recompute_spatial) && file.exists(spatial_checkpoint_path)) {
       est_piece_pop      = total_pop * dasymetric_prop
     )
   
-  rm(blocks_by_state, districts_by_state, state_tasks)
+  rm(state_tasks)
   gc()
+  
+  # Restore full Slurm CPU count for PNG map rendering
+  if (!is.na(n_workers) && n_workers > 1L) {
+    plan(multicore, workers = n_workers)
+  }
   
   # 5. Summarize District-Level Rural Serving Metrics (School-Aged 5-17 Primary) ----
   districts_rural_summary <- dasymetric_pieces |>
