@@ -1,6 +1,7 @@
 # 01_fetch_rurality_data.R
 # Determine the most recent common year across ACS, TIGER/Line, and NCES CCD,
-# and fetch/cache raw datasets only if that year is not already cached.
+# fetch/cache annual datasets, and cache 2020 Decennial Census block interior points
+# for dasymetric school-aged population weighting (Extension #4).
 # Author: Joe Champion, Boise State University
 
 args <- commandArgs(trailingOnly = TRUE)
@@ -15,21 +16,74 @@ library(sf)
 library(tigris)
 library(tidycensus)
 library(educationdata)
+library(furrr)
 
 options(tigris_use_cache = TRUE)
 options(tigris_cache_dir = cache_dir)
 sf_use_s2(TRUE)
+
+# Configure parallel workers if running inside a multi-core Slurm job
+n_workers <- as.integer(Sys.getenv("SLURM_CPUS_PER_TASK", unset = "1"))
+if (!is.na(n_workers) && n_workers > 1L) {
+  plan(multicore, workers = n_workers)
+} else {
+  plan(sequential)
+}
+
+state_fips <- tidycensus::fips_codes |>
+  filter(as.numeric(state_code) <= 56) |>
+  pull(state_code) |>
+  unique()
+
+# 0. Ensure 2020 Decennial Census Block Interior Points Are Cached ----
+# Decennial blocks only update once per decade, so cache independently of annual ACS/CCD syncs
+decennial_year <- 2020L
+blocks_path    <- file.path(cache_dir, paste0("decennial_block_points_", decennial_year, ".rds"))
+
+if (!file.exists(blocks_path)) {
+  message("Fetching and caching ", decennial_year, " Decennial Census block points across ", length(state_fips), " jurisdictions...")
+  decennial_block_points <- future_map(
+    state_fips,
+    \(fip) {
+      suppressMessages(get_decennial(
+        geography = "block",
+        variables = c(blk_pop = "P1_001N", blk_hu = "H1_001N"),
+        state = fip,
+        year = decennial_year,
+        geometry = TRUE,
+        output = "wide"
+      )) |>
+        st_transform(5070) |>
+        st_point_on_surface() |>
+        mutate(
+          state_fip   = fip,
+          tract_geoid = stringr::str_sub(GEOID, 1, 11)
+        ) |>
+        select(block_geoid = GEOID, state_fip, tract_geoid, blk_pop, blk_hu)
+    },
+    .options = furrr_options(seed = TRUE)
+  ) |>
+    list_rbind() |>
+    st_as_sf()
+  
+  saveRDS(decennial_block_points, blocks_path)
+  message("Saved ", nrow(decennial_block_points), " decennial block interior points to: ", blocks_path)
+  rm(decennial_block_points)
+  gc()
+} else {
+  message("Decennial block cache already exists: ", blocks_path)
+}
 
 # 1. Probe Most Recent Common Available Year ----
 current_yr <- as.integer(format(Sys.Date(), "%Y"))
 candidate_years <- seq(current_yr - 1L, 2020L, by = -1L)
 
 check_year_available <- function(yr) {
-  # Probe 1: ACS 5-year tract data (test using DC "11", fast single-county equivalent)
+  # Probe 1: ACS 5-year tract data (total pop + B09001 school-aged variables)
   acs_ok <- tryCatch({
     res <- suppressMessages(get_acs(
       geography = "tract",
-      variables = "B01001_001",
+      variables = c("B01001_001", "B09001_006", "B09001_010"),
       state = "11",
       year = yr,
       geometry = FALSE
@@ -79,7 +133,7 @@ if (is.na(year_this)) {
 }
 message("Most recent common available year: ", year_this)
 
-# 2. Check Cache Manifest & Skip Fetch if Up to Date ----
+# 2. Check Cache Manifest & Skip Annual Fetch if Up to Date ----
 tracts_path    <- file.path(cache_dir, paste0("tract_pops_raw_", year_this, ".rds"))
 districts_path <- file.path(cache_dir, paste0("districts_geo_raw_", year_this, ".rds"))
 nces_path      <- file.path(cache_dir, paste0("nces_ccd_raw_", year_this, ".rds"))
@@ -91,27 +145,39 @@ cached_year <- if (file.exists(manifest_path)) {
   NA_integer_
 }
 
-files_exist <- all(file.exists(c(tracts_path, districts_path, nces_path)))
+files_exist <- all(file.exists(c(tracts_path, districts_path, nces_path, blocks_path)))
 
-if (!isTRUE(force_sync) && !is.na(cached_year) && cached_year == year_this && files_exist) {
-  message("Cache is already up to date for year ", year_this, ". Skipping download.")
+# Also verify cached tract file includes the B09001 age columns (upgraded schema)
+tracts_has_age_cols <- if (file.exists(tracts_path)) {
+  "age_5E" %in% names(readRDS(tracts_path))
+} else {
+  FALSE
+}
+
+if (!isTRUE(force_sync) && !is.na(cached_year) && cached_year == year_this && files_exist && tracts_has_age_cols) {
+  message("Cache is already up to date for year ", year_this, " (including B09001 ages 5-17 and decennial blocks). Skipping download.")
+  plan(sequential)
   quit(save = "no", status = 0)
 }
 
-# 3. Fetch & Cache All Three Sources for year_this ----
-state_fips <- tidycensus::fips_codes |>
-  filter(as.numeric(state_code) <= 56) |>
-  pull(state_code) |>
-  unique()
+# 3. Fetch & Cache All Three Annual Sources for year_this ----
+# 3a. Census Tract Total & School-Aged (5-17) Population + Geometry (ACS 5-Year)
+message("Fetching ACS tract populations (total + B09001 ages 5-17) and geometries for ", year_this, "...")
+acs_vars <- c(
+  total_pop = "B01001_001",
+  age_5     = "B09001_006",
+  age_6_8   = "B09001_007",
+  age_9_11  = "B09001_008",
+  age_12_14 = "B09001_009",
+  age_15_17 = "B09001_010"
+)
 
-# 3a. Census Tract Population & Geometry (ACS 5-Year)
-message("Fetching ACS tract populations and geometries for ", year_this, "...")
 tract_pops_raw <- map(
   state_fips,
   \(fip) {
     get_acs(
       geography = "tract",
-      variables = c(total_pop = "B01001_001"),
+      variables = acs_vars,
       state = fip,
       year = year_this,
       geometry = TRUE,
@@ -196,4 +262,5 @@ if (is.null(nces_ccd_raw) || nrow(nces_ccd_raw) == 0) {
 saveRDS(nces_ccd_raw, nces_path)
 
 writeLines(as.character(year_this), manifest_path)
+plan(sequential)
 message("All raw datasets cached successfully for ", year_this, " in: ", cache_dir)

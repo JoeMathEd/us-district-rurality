@@ -3,8 +3,8 @@
 #SBATCH --partition=bsudfq
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=2
-#SBATCH --mem=16G
+#SBATCH --cpus-per-task=8
+#SBATCH --mem=32G
 #SBATCH --time=01:00:00
 #SBATCH --output=/bsuscratch/%u/district-rurality/logs/01_fetch_%j.out
 

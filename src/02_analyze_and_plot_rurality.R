@@ -1,6 +1,6 @@
 # 02_analyze_and_plot_rurality.R
-# Compute tract-to-district spatial intersections, merge NCES CCD metrics, and render state maps
-# Uses parallel processing (furrr) and caches the spatial join checkpoint to speed up plot iterations
+# Compute block-dasymetric tract-to-district school-aged (5-17) rurality estimates,
+# merge NCES CCD metrics, cache spatial checkpoint, and render state maps.
 # Author: Joe Champion, Boise State University
 
 args <- commandArgs(trailingOnly = TRUE)
@@ -43,7 +43,7 @@ year_this <- if (!is.na(year_arg)) {
   stop("No year specified and ", manifest_path, " not found. Run 01_fetch_rurality_data.R first.")
 }
 
-message("Running rurality analysis and mapping for year: ", year_this)
+message("Running block-dasymetric rurality analysis and mapping for year: ", year_this)
 
 # Checkpoint path for joined spatial + NCES dataset ----
 spatial_checkpoint_path <- file.path(cache_dir, paste0("districts_complete_sf_", year_this, ".rds"))
@@ -60,22 +60,29 @@ if (!isTRUE(recompute_spatial) && file.exists(spatial_checkpoint_path)) {
   tracts_path    <- file.path(cache_dir, paste0("tract_pops_raw_", year_this, ".rds"))
   districts_path <- file.path(cache_dir, paste0("districts_geo_raw_", year_this, ".rds"))
   nces_path      <- file.path(cache_dir, paste0("nces_ccd_raw_", year_this, ".rds"))
+  blocks_path    <- file.path(cache_dir, "decennial_block_points_2020.rds")
   
-  if (!all(file.exists(c(tracts_path, districts_path, nces_path)))) {
-    stop("Missing cached .rds files for ", year_this, " in ", cache_dir, ". Run 01_fetch_rurality_data.R first.")
+  if (!all(file.exists(c(tracts_path, districts_path, nces_path, blocks_path)))) {
+    stop("Missing cached .rds files for ", year_this, " (or decennial_block_points_2020.rds) in ", cache_dir, ". Run 01_fetch_rurality_data.R first.")
   }
   
-  tract_pops_raw    <- readRDS(tracts_path)
-  districts_geo_raw <- readRDS(districts_path)
-  nces_ccd_raw      <- readRDS(nces_path)
+  tract_pops_raw         <- readRDS(tracts_path)
+  districts_geo_raw      <- readRDS(districts_path)
+  nces_ccd_raw           <- readRDS(nces_path)
+  decennial_block_points <- readRDS(blocks_path)
   
   # 2. Project & Wrangle Census Tracts (Equal-Area Albers EPSG:5070) ----
+  # Note: Total population density (< 500 people/mi^2) defines rural vs. urban tracts;
+  # ACS B09001 (ages 5-17) provides school-aged population counts for district aggregation.
   tract_pops_clean <- tract_pops_raw |>
     st_transform(5070) |>
     st_make_valid() |>
     filter(!st_is_empty(geometry)) |>
     mutate(
       total_pop         = coalesce(total_popE, 0),
+      pop_5_17          = coalesce(age_5E, 0) + coalesce(age_6_8E, 0) +
+        coalesce(age_9_11E, 0) + coalesce(age_12_14E, 0) +
+        coalesce(age_15_17E, 0),
       tract_land_mi2    = set_units(st_area(geometry), "mi^2"),
       tract_pop_density = if_else(
         as.numeric(tract_land_mi2) > 0,
@@ -85,13 +92,14 @@ if (!isTRUE(recompute_spatial) && file.exists(spatial_checkpoint_path)) {
       is_low_density    = tract_pop_density < 500,
       state_fip         = stringr::str_sub(GEOID, 1, 2)
     ) |>
+    st_drop_geometry() |>
     select(
       tract_geoid = GEOID,
       state_fip,
       total_pop,
+      pop_5_17,
       tract_pop_density,
-      is_low_density,
-      tract_land_mi2
+      is_low_density
     )
   
   # 3. Project & Wrangle School District Boundaries ----
@@ -112,47 +120,72 @@ if (!isTRUE(recompute_spatial) && file.exists(spatial_checkpoint_path)) {
   districts_clean <- districts_geo |>
     select(GEOID, state_fip, district_name, district_area_mi2)
   
-  # 4. Calculate Rurality by Intersecting Tracts with Districts (Parallelized) ----
-  message("Computing state-by-state tract-to-district intersections...")
+  # 4. Calculate Block-Dasymetric Tract-to-District Weights (Parallelized) ----
+  message("Computing state-by-state block-dasymetric tract-to-district apportionments...")
   state_fips <- unique(districts_clean$state_fip)
   
-  intersections <- future_map(
+  dasymetric_pieces <- future_map(
     state_fips,
     \(fip) {
-      tr_sub   <- tract_pops_clean |> filter(state_fip == fip)
-      dist_sub <- districts_clean |> filter(state_fip == fip)
+      blk_sub  <- decennial_block_points |> filter(state_fip == fip)
+      dist_sub <- districts_clean |> filter(state_fip == fip) |> select(GEOID, district_name)
       
-      if (nrow(tr_sub) == 0 || nrow(dist_sub) == 0) return(NULL)
+      if (nrow(blk_sub) == 0 || nrow(dist_sub) == 0) return(NULL)
       
-      suppressWarnings(st_intersection(tr_sub, dist_sub))
+      # Point-in-polygon assignment of block interior points to school districts
+      # (Note: in dual elementary/secondary systems, a block point matches both overlapping districts)
+      joined <- st_join(blk_sub, dist_sub, join = st_within, left = FALSE) |>
+        st_drop_geometry()
+      
+      if (nrow(joined) == 0) return(NULL)
+      
+      # Compute within-tract block shares using ALL blocks in the tract as denominator
+      tract_denoms <- blk_sub |>
+        st_drop_geometry() |>
+        group_by(tract_geoid) |>
+        summarize(
+          tract_blk_pop = sum(blk_pop, na.rm = TRUE),
+          tract_blk_hu  = sum(blk_hu, na.rm = TRUE),
+          tract_n_blks  = n(),
+          .groups = "drop"
+        )
+      
+      joined |>
+        left_join(tract_denoms, by = "tract_geoid") |>
+        mutate(
+          blk_weight = case_when(
+            tract_blk_pop > 0 ~ blk_pop / tract_blk_pop,
+            tract_blk_hu > 0  ~ blk_hu / tract_blk_hu,
+            tract_n_blks > 0  ~ 1 / tract_n_blks,
+            TRUE              ~ 0
+          )
+        ) |>
+        group_by(GEOID, district_name, tract_geoid) |>
+        summarize(dasymetric_prop = pmin(sum(blk_weight, na.rm = TRUE), 1.0), .groups = "drop")
     },
     .options = furrr_options(seed = TRUE)
   ) |>
     compact() |>
     bind_rows() |>
-    st_as_sf() |>
+    inner_join(tract_pops_clean, by = "tract_geoid") |>
     mutate(
-      piece_area_mi2 = set_units(st_area(geometry), "mi^2"),
-      area_prop      = if_else(
-        as.numeric(tract_land_mi2) > 0,
-        as.numeric(piece_area_mi2 / tract_land_mi2),
-        0
-      ),
-      est_piece_pop  = total_pop * pmin(area_prop, 1.0)
+      est_piece_pop_5_17 = pop_5_17 * dasymetric_prop,
+      est_piece_pop      = total_pop * dasymetric_prop
     )
   
-  # 5. Summarize District-Level Rural Serving Metrics ----
-  districts_rural_summary <- intersections |>
-    st_drop_geometry() |>
+  # 5. Summarize District-Level Rural Serving Metrics (School-Aged 5-17 Primary) ----
+  districts_rural_summary <- dasymetric_pieces |>
     group_by(GEOID, district_name) |>
     summarize(
       n_intersecting_tracts = n(),
+      est_total_pop_5_17    = sum(est_piece_pop_5_17, na.rm = TRUE),
+      est_rural_pop_5_17    = sum(est_piece_pop_5_17[is_low_density], na.rm = TRUE),
+      pct_pop_rural         = if_else(est_total_pop_5_17 > 0, 100 * (est_rural_pop_5_17 / est_total_pop_5_17), NA_real_),
       est_total_pop         = sum(est_piece_pop, na.rm = TRUE),
       est_rural_pop         = sum(est_piece_pop[is_low_density], na.rm = TRUE),
-      pct_pop_rural         = if_else(est_total_pop > 0, 100 * (est_rural_pop / est_total_pop), NA_real_),
       weighted_mean_density = if_else(
-        est_total_pop > 0,
-        weighted.mean(tract_pop_density, est_piece_pop, na.rm = TRUE),
+        est_total_pop_5_17 > 0,
+        weighted.mean(tract_pop_density, est_piece_pop_5_17, na.rm = TRUE),
         NA_real_
       ),
       .groups = "drop"
@@ -260,7 +293,7 @@ script_dir  <- if (length(script_flag) > 0) dirname(sub("^--file=", "", script_f
 source(file.path(script_dir, "utils", "district_name_helpers.R"))
 
 districts_complete_sf <- districts_complete_sf |>
-  mutate( short_name = clean_district_name(lea_name, district_name) )
+  mutate(short_name = clean_district_name(lea_name, district_name))
 
 folder_unlabeled <- file.path(output_dir, "state_district_maps", "unlabeled")
 folder_labeled   <- file.path(output_dir, "state_district_maps", "labeled")
@@ -336,8 +369,8 @@ future_walk(states_to_plot, \(st_name) {
     ) +
     labs(
       title = paste("Estimated Percentage of Rural Students:", st_name),
-      subtitle = "Rural-centric definition: census tract population density < 500 people / sq mi",
-      caption = paste0("Source: NCES CCD & US Census ACS 5-Year Estimates, ", year_this)
+      subtitle = "Block-dasymetric ages 5–17 share in low-density census tracts (< 500 people / sq mi)",
+      caption = paste0("Source: NCES CCD, US Census ACS 5-Year & 2020 Decennial Blocks (", year_this, ")")
     ) +
     theme_void(base_size = 11) +
     theme(
