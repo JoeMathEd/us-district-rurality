@@ -738,7 +738,86 @@
     }
     return { abbr: bestAbbr, source: "center of map window" };
   }
+  // Sync current state & district selection to URL query parameters without page reload
+  function syncUrlParams() {
+    const params = new URLSearchParams(window.location.search);
+    if (state.selectedState && state.selectedState !== "ALL") {
+      params.set("state", state.selectedState);
+    } else {
+      params.delete("state");
+    }
 
+    if (state.selectedGeoid) {
+      params.set("district", state.selectedGeoid);
+    } else {
+      params.delete("district");
+    }
+
+    const qs = params.toString();
+    const newUrl = qs ? `${window.location.pathname}?${qs}` : window.location.pathname;
+    window.history.replaceState(null, "", newUrl);
+  }
+
+  // Apply ?state=... and ?district=... parameters on initial page load
+  function applyUrlParams() {
+    const params = new URLSearchParams(window.location.search);
+    const stateParam = params.get("state");
+    const distParam  = params.get("district");
+
+    // 1. Resolve ?state= (supports 2-letter abbreviation like "ID" or full name like "Idaho")
+    if (stateParam) {
+      const normalized = stateParam.trim().toUpperCase();
+      const stateSelect = document.getElementById("stateSelect");
+      let matchedAbbr = null;
+
+      for (const opt of stateSelect.options) {
+        if (opt.value.toUpperCase() === normalized || opt.textContent.toUpperCase().startsWith(normalized + " (")) {
+          matchedAbbr = opt.value;
+          break;
+        }
+      }
+
+      if (matchedAbbr && matchedAbbr !== "ALL") {
+        state.selectedState = matchedAbbr;
+        stateSelect.value = matchedAbbr;
+        if (state.stateBounds.has(matchedAbbr)) {
+          map.fitBounds(state.stateBounds.get(matchedAbbr));
+        }
+      }
+    }
+
+    // 2. Resolve ?district= (supports 7-digit zero-padded GEOID like "1600360" or partial district name)
+    if (distParam) {
+      const raw = distParam.trim();
+      const paddedGeoid = /^\d+$/.test(raw) ? raw.padStart(7, "0") : null;
+      let targetGeoid = (paddedGeoid && state.layersByGeoid.has(paddedGeoid)) ? paddedGeoid : null;
+
+      if (!targetGeoid && state.geojson) {
+        const q = raw.toLowerCase();
+        const hit = state.geojson.features.find(f => {
+          const p = f.properties;
+          if (state.selectedState !== "ALL" && p.state_abbr !== state.selectedState) return false;
+          return (p.lea_name && p.lea_name.toLowerCase().includes(q)) ||
+                 (p.short_name && p.short_name.toLowerCase().includes(q));
+        });
+        if (hit) targetGeoid = hit.properties.GEOID;
+      }
+
+      if (targetGeoid && state.layersByGeoid.has(targetGeoid)) {
+        const lyr = state.layersByGeoid.get(targetGeoid);
+        const stAbbr = lyr.feature.properties.state_abbr;
+        // If ?state= wasn't explicitly set to ALL, keep state filter aligned or leave ALL so surrounding states remain visible
+        if (state.selectedState !== "ALL" && state.selectedState !== stAbbr) {
+          state.selectedState = stAbbr;
+          document.getElementById("stateSelect").value = stAbbr;
+        }
+        map.fitBounds(lyr.getBounds(), { maxZoom: 10 });
+        openDistrictDrawer(targetGeoid);
+      }
+    }
+
+    syncUrlParams();
+  }
   function openScatterModal() {
     if (!state.geojson) return;
     const stFilter = state.selectedState;
