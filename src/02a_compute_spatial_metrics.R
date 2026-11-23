@@ -75,7 +75,8 @@ lodes_wac_raw <- if (length(wac_files) > 0) readRDS(wac_files[1]) else NULL
 lodes_od_raw  <- if (length(od_files) > 0) readRDS(od_files[1]) else NULL
 
 # Helper for safe optional ACS columns
-safe_col <- function(df, col_name) {
+# Helper for safe optional ACS columns inside dplyr verbs (.data is the filtered data)
+safe_vec <- function(df, col_name) {
   if (col_name %in% names(df)) coalesce(as.numeric(df[[col_name]]), 0) else rep(0, nrow(df))
 }
 
@@ -97,20 +98,19 @@ tract_pops_clean <- tract_pops_raw |>
     ),
     is_low_density    = tract_pop_density < 500,
     state_fip         = stringr::str_sub(GEOID, 1, 2),
-    # Extension #2 ACS tract indicators
-    med_hh_inc        = if ("med_hh_incE" %in% names(tract_pops_raw)) as.numeric(med_hh_incE) else NA_real_,
-    hh_total          = safe_col(tract_pops_raw, "hh_totalE"),
-    pov_univ          = safe_col(tract_pops_raw, "pov_univE"),
-    pov_below         = safe_col(tract_pops_raw, "pov_belowE"),
-    lf_civ            = safe_col(tract_pops_raw, "lf_civE"),
-    lf_unemp          = safe_col(tract_pops_raw, "lf_unempE"),
-    emp_total         = safe_col(tract_pops_raw, "emp_totalE"),
-    emp_ag_mining     = safe_col(tract_pops_raw, "ag_min_mE") + safe_col(tract_pops_raw, "ag_min_fE"),
-    emp_const         = safe_col(tract_pops_raw, "const_mE") + safe_col(tract_pops_raw, "const_fE"),
-    emp_mfg           = safe_col(tract_pops_raw, "mfg_mE") + safe_col(tract_pops_raw, "mfg_fE"),
-    emp_retail        = safe_col(tract_pops_raw, "retail_mE") + safe_col(tract_pops_raw, "retail_fE"),
-    emp_ed_hlth       = safe_col(tract_pops_raw, "ed_hlth_mE") + safe_col(tract_pops_raw, "ed_hlth_fE")
-  ) |>
+    med_hh_inc        = if ("med_hh_incE" %in% names(cur_data())) as.numeric(cur_data()[["med_hh_incE"]]) else NA_real_,
+    hh_total          = safe_vec(cur_data(), "hh_totalE"),
+    pov_univ          = safe_vec(cur_data(), "pov_univE"),
+    pov_below         = safe_vec(cur_data(), "pov_belowE"),
+    lf_civ            = safe_vec(cur_data(), "lf_civE"),
+    lf_unemp          = safe_vec(cur_data(), "lf_unempE"),
+    emp_total         = safe_vec(cur_data(), "emp_totalE"),
+    emp_ag_mining     = safe_vec(cur_data(), "ag_min_mE") + safe_vec(cur_data(), "ag_min_fE"),
+    emp_const         = safe_vec(cur_data(), "const_mE") + safe_vec(cur_data(), "const_fE"),
+    emp_mfg           = safe_vec(cur_data(), "mfg_mE") + safe_vec(cur_data(), "mfg_fE"),
+    emp_retail        = safe_vec(cur_data(), "retail_mE") + safe_vec(cur_data(), "retail_fE"),
+    emp_ed_hlth       = safe_vec(cur_data(), "ed_hlth_mE") + safe_vec(cur_data(), "ed_hlth_fE")
+  ) |> 
   st_drop_geometry() |>
   select(
     tract_geoid = GEOID,
