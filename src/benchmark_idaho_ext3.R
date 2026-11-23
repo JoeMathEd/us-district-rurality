@@ -82,27 +82,50 @@ ua_region <- ua_region |>
 ua_50k <- ua_region |> filter(coalesce(ua_pop_2020, 0) >= 50000)
 
 
-# 3. Fetch & cache USDA ERS Tract-Level RUCA Codes (2020 or 2010 legacy fallback) ----
+# 3. Fetch & cache USDA ERS Tract-Level RUCA Codes (auto-discover current ERS URL) ----
 ruca_cache_path <- file.path(cache_dir, "ruca_tracts_cached.rds")
 if (file.exists(ruca_cache_path)) {
   ruca_df <- readRDS(ruca_cache_path)
 } else {
-  message("Downloading USDA ERS RUCA tract codes...")
-  # USDA ERS 2020 RUCA CSV endpoint (falls back to 2010 revised CSV if needed)
-  ruca_url_2020 <- "https://www.ers.usda.gov/media/5346/ruca2020tract.csv"
-  ruca_raw <- tryCatch(
-    readr::read_csv(ruca_url_2020, show_col_types = FALSE),
-    error = function(e) readr::read_csv("https://www.ers.usda.gov/media/5351/ruca2010revised.csv", show_col_types = FALSE)
-  )
-  # Normalize column names across 2020 and 2010 ERS schemas
+  message("Discovering current USDA ERS RUCA tract dataset URL...")
+  ers_page <- rvest::read_html("https://www.ers.usda.gov/data-products/rural-urban-commuting-area-codes")
+  links <- ers_page |>
+    rvest::html_elements("a") |>
+    rvest::html_attr("href") |>
+    na.omit() |>
+    xml2::url_absolute("https://www.ers.usda.gov")
+  
+  # Prefer tract-level CSV (2020 or 2010), falling back to XLSX if needed
+  csv_links <- links[stringr::str_detect(tolower(links), "ruca.*tract.*\\.csv$|ruca20.*\\.csv$")]
+  xlsx_links <- links[stringr::str_detect(tolower(links), "ruca.*tract.*\\.xlsx$|ruca20.*\\.xlsx$")]
+  
+  if (length(csv_links) > 0) {
+    message("Downloading RUCA CSV from: ", csv_links[1])
+    ruca_raw <- readr::read_csv(csv_links[1], show_col_types = FALSE)
+  } else if (length(xlsx_links) > 0) {
+    message("Downloading RUCA XLSX from: ", xlsx_links[1])
+    tmp_xlsx <- tempfile(fileext = ".xlsx")
+    download.file(xlsx_links[1], tmp_xlsx, mode = "wb", quiet = TRUE)
+    # ERS XLSX files typically have a 1-row title banner above headers; detect header row dynamically
+    preview <- readxl::read_excel(tmp_xlsx, n_max = 5, col_names = FALSE)
+    skip_rows <- which(apply(preview, 1, \(r) any(stringr::str_detect(tolower(as.character(r)), "tract|fips"), na.rm = TRUE)))[1] - 1L
+    ruca_raw <- readxl::read_excel(tmp_xlsx, skip = max(0L, skip_rows))
+  } else {
+    stop("Could not locate a RUCA tract CSV/XLSX link on the USDA ERS page. Found links: ",
+         paste(links[stringr::str_detect(tolower(links), "ruca")], collapse = ", "))
+  }
+  
   geoid_col <- names(ruca_raw)[stringr::str_detect(tolower(names(ruca_raw)), "tract.*fips|fips.*tract|geoid")][1]
   prim_col  <- names(ruca_raw)[stringr::str_detect(tolower(names(ruca_raw)), "primary.*ruca|ruca1")][1]
+  
   ruca_df <- ruca_raw |>
     transmute(
       tract_geoid = stringr::str_pad(as.character(.data[[geoid_col]]), 11, pad = "0"),
       ruca_primary = as.integer(.data[[prim_col]])
     ) |>
+    filter(!is.na(tract_geoid), !is.na(ruca_primary)) |>
     distinct(tract_geoid, .keep_all = TRUE)
+  
   saveRDS(ruca_df, ruca_cache_path)
 }
 
