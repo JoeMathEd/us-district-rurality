@@ -78,6 +78,10 @@
       z-index: 999;
     }
     .filter-group { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+    .metric-select {
+      background: #fff; color: var(--text-main); border: 1px solid var(--border);
+      font-weight: 600; padding: 3px 8px;
+    }
     .pill {
       background: #fff; color: var(--text-main); border: 1px solid var(--border);
       padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 600;
@@ -99,7 +103,7 @@
     .map-overlay-card {
       position: absolute; bottom: 18px; left: 14px; z-index: 900;
       background: var(--panel-bg); border: 1px solid var(--border);
-      border-radius: 8px; padding: 10px 12px; width: 268px;
+      border-radius: 8px; padding: 10px 12px; width: 278px;
       box-shadow: 0 4px 14px rgba(15, 23, 42, 0.14); font-size: 11.5px;
     }
     .legend-title { font-weight: 700; margin-bottom: 3px; display: flex; justify-content: space-between; }
@@ -132,7 +136,7 @@
 
     /* Right-Hand District Profile Drawer */
     aside#drawer {
-      width: 405px; max-width: 92vw; background: var(--panel-bg);
+      width: 415px; max-width: 92vw; background: var(--panel-bg);
       border-left: 1px solid var(--border); height: 100%; overflow-y: auto;
       padding: 16px; display: flex; flex-direction: column; gap: 13px;
       box-shadow: -4px 0 16px rgba(15, 23, 42, 0.08); z-index: 950;
@@ -177,6 +181,7 @@
     }
     .meta-box .lbl { font-size: 10.5px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em; }
     .meta-box .val { font-size: 13.5px; font-weight: 700; margin-top: 2px; }
+    .meta-box .sub { font-size: 10.5px; color: var(--text-muted); margin-top: 2px; }
 
     /* Assessment Bars */
     .section-title { font-size: 12.5px; font-weight: 700; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 6px; }
@@ -222,18 +227,24 @@
     <input type="text" id="districtSearch" list="districtDatalist" placeholder="Search school district..." />
     <datalist id="districtDatalist"></datalist>
     <button id="btnShareLink" title="Copy direct link to current state/district view">Copy Link</button>
-    <button id="btnScatter" title="Plot % Rural Students vs Math Proficiency">Rurality × Math Plot</button>
+    <button id="btnScatter" title="Plot Rurality Metric vs Math Proficiency">Rurality × Math Plot</button>
     <button id="btnStatePng" title="View 300 DPI State Map">300 DPI state map</button>
   </div>
 </header>
 
 <div class="filter-strip">
   <div class="filter-group">
-    <span style="font-weight:700;">Filter % Rural:</span>
+    <span style="font-weight:700;">Metric:</span>
+    <select id="metricSelect" class="metric-select" title="Switch choropleth & filter indicator">
+      <option value="pct_pop_rural">Tract Density (&lt;500/mi²)</option>
+      <option value="pct_youth_outside_ua">Outside Census Urban Area</option>
+      <option value="pct_youth_ruca_rural">USDA RUCA Rural (7–10)</option>
+      <option value="pct_youth_ruca_nonmetro">USDA RUCA Nonmetro (4–10)</option>
+    </select>
     <button class="pill active" data-preset="all">All</button>
-    <button class="pill" data-preset="50">Majority Rural (≥50%)</button>
-    <button class="pill" data-preset="75">Highly Rural (≥75%)</button>
-    <button class="pill" data-preset="100">100% Rural</button>
+    <button class="pill" data-preset="50">≥50%</button>
+    <button class="pill" data-preset="75">≥75%</button>
+    <button class="pill" data-preset="100">100%</button>
     <div class="range-wrap">
       <input type="range" id="minRuralSlider" min="0" max="100" step="5" value="0" />
       <span id="minRuralVal">≥ 0%</span>
@@ -241,7 +252,7 @@
   </div>
 
   <div class="filter-group">
-    <button class="pill active" id="btnModeCont">Continuous Scale</button>
+    <button class="pill active" id="btnModeCont">Continuous</button>
     <button class="pill" id="btnModeBins">5-Tier Bins</button>
     <button class="pill warn" id="btnMismatch">Locale Mismatches</button>
   </div>
@@ -258,10 +269,10 @@
 
   <div class="map-overlay-card">
     <div class="legend-title">
-      <span>% Rural Students (5–17)</span>
+      <span id="legendTitleText">% Rural Students (5–17)</span>
       <span id="opacityLabel">82%</span>
     </div>
-    <div class="legend-def">
+    <div class="legend-def" id="legendDefText">
       <strong>Rural Threshold:</strong> Census tracts with <strong>&lt; 500 people / sq mi</strong> (<a href="https://www.ers.usda.gov/topics/rural-economy-population/rural-classifications/what-is-rural" target="_blank" rel="noopener noreferrer">USDA ERS</a> / <a href="https://www.census.gov/programs-surveys/geography/guidance/geo-areas/urban-rural.html" target="_blank" rel="noopener noreferrer">US Census</a>), block-weighted for ages 5–17.
     </div>
     <div id="legendContinuous">
@@ -269,11 +280,11 @@
       <div class="grad-labels"><span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div>
     </div>
     <div id="legendBins" style="display:none;">
-      <div class="bin-row"><span class="swatch" style="background:#1e293b;"></span> 0% (All ≥ 500/sq mi Tracts)</div>
-      <div class="bin-row"><span class="swatch" style="background:#2d4a53;"></span> 1% – 24.9% Rural</div>
-      <div class="bin-row"><span class="swatch" style="background:#467365;"></span> 25% – 49.9% Rural</div>
-      <div class="bin-row"><span class="swatch" style="background:#6fa382;"></span> 50% – 74.9% Rural (Majority)</div>
-      <div class="bin-row"><span class="swatch" style="background:#a3d9a5;"></span> 75% – 100% Rural (Highly Rural)</div>
+      <div class="bin-row"><span class="swatch" style="background:#1e293b;"></span> 0% (Non-Rural)</div>
+      <div class="bin-row"><span class="swatch" style="background:#2d4a53;"></span> 1% – 24.9%</div>
+      <div class="bin-row"><span class="swatch" style="background:#467365;"></span> 25% – 49.9%</div>
+      <div class="bin-row"><span class="swatch" style="background:#6fa382;"></span> 50% – 74.9% (Majority)</div>
+      <div class="bin-row"><span class="swatch" style="background:#a3d9a5;"></span> 75% – 100% (Highly Rural)</div>
     </div>
     <div class="overlay-checks">
       <label><input type="checkbox" id="chkLabels" checked /> Show map labels</label>
@@ -297,7 +308,7 @@
         <span class="rural-tag" id="dLocaleBadge">NCES Locale</span>
       </div>
       <div class="cutoff-callout">
-        <strong>Rural Classification Standard:</strong> Youth (ages 5–17) in Census tracts with population density <strong>&lt; 500 people / sq mi</strong> (<a href="https://www.ers.usda.gov/topics/rural-economy-population/rural-classifications/what-is-rural" target="_blank" rel="noopener noreferrer">USDA ERS</a> &amp; <a href="https://www.census.gov/programs-surveys/geography/guidance/geo-areas/urban-rural.html" target="_blank" rel="noopener noreferrer">US Census Bureau</a>).
+        <strong>Primary Classification Standard:</strong> Youth (ages 5–17) in Census tracts with population density <strong>&lt; 500 people / sq mi</strong> (<a href="https://www.ers.usda.gov/topics/rural-economy-population/rural-classifications/what-is-rural" target="_blank" rel="noopener noreferrer">USDA ERS</a> &amp; <a href="https://www.census.gov/programs-surveys/geography/guidance/geo-areas/urban-rural.html" target="_blank" rel="noopener noreferrer">US Census Bureau</a>).
       </div>
       <div class="pop-bar-wrap">
         <div class="pop-bar">
@@ -315,6 +326,35 @@
     </div>
 
     <div class="mismatch-banner hidden" id="dMismatchBox"></div>
+
+    <div>
+      <div class="section-title">
+        <span>Spatial Rurality &amp; Remoteness Indicators</span>
+        <span class="source-tag">Extension #3</span>
+      </div>
+      <div class="meta-grid">
+        <div class="meta-box">
+          <div class="lbl">Outside Census Urban Area</div>
+          <div class="val" id="dOutsideUa">—</div>
+          <div class="sub">Youth in non-UA blocks</div>
+        </div>
+        <div class="meta-box">
+          <div class="lbl">USDA ERS 2020 RUCA</div>
+          <div class="val" id="dRucaRural">—</div>
+          <div class="sub" id="dRucaNonmetro">Nonmetro (4–10): —</div>
+        </div>
+        <div class="meta-box">
+          <div class="lbl">Dist. to Any Urban Area</div>
+          <div class="val" id="dDistAnyUa">—</div>
+          <div class="sub">Pop.-weighted centroid</div>
+        </div>
+        <div class="meta-box">
+          <div class="lbl">Dist. to ≥50k Urban Core</div>
+          <div class="val" id="dDist50kUa">—</div>
+          <div class="sub">Urbanized Area remoteness</div>
+        </div>
+      </div>
+    </div>
 
     <div class="meta-grid">
       <div class="meta-box">
@@ -361,6 +401,29 @@
 </div>
 
 <script>
+  const METRIC_META = {
+    pct_pop_rural: {
+      shortLabel: "Tract Density (<500/mi²)",
+      legendTitle: "% Rural Students (<500/mi²)",
+      legendDef: '<strong>Rural Threshold:</strong> Census tracts with <strong>&lt; 500 people / sq mi</strong> (<a href="https://www.ers.usda.gov/topics/rural-economy-population/rural-classifications/what-is-rural" target="_blank" rel="noopener noreferrer">USDA ERS</a> / <a href="https://www.census.gov/programs-surveys/geography/guidance/geo-areas/urban-rural.html" target="_blank" rel="noopener noreferrer">US Census</a>), block-weighted for ages 5–17.'
+    },
+    pct_youth_outside_ua: {
+      shortLabel: "Outside Census Urban Area",
+      legendTitle: "% Youth Outside Urban Areas",
+      legendDef: '<strong>Census Urban Area Overlay:</strong> Share of youth (ages 5–17) in 2020 Census blocks located outside designated <a href="https://www.census.gov/programs-surveys/geography/guidance/geo-areas/urban-rural.html" target="_blank" rel="noopener noreferrer">US Census Urban Areas</a>.'
+    },
+    pct_youth_ruca_rural: {
+      shortLabel: "USDA RUCA Rural (7–10)",
+      legendTitle: "% Youth in RUCA Rural (7–10)",
+      legendDef: '<strong>USDA ERS 2020 RUCA (Codes 7–10):</strong> Share of youth (ages 5–17) in small-town/rural tracts without primary commuting flows to urban cores (<a href="https://www.ers.usda.gov/data-products/rural-urban-commuting-area-codes" target="_blank" rel="noopener noreferrer">USDA ERS</a>).'
+    },
+    pct_youth_ruca_nonmetro: {
+      shortLabel: "USDA RUCA Nonmetro (4–10)",
+      legendTitle: "% Youth in RUCA Nonmetro (4–10)",
+      legendDef: '<strong>USDA ERS 2020 RUCA (Codes 4–10):</strong> Share of youth (ages 5–17) in micropolitan, small-town, and rural tracts outside metropolitan commuting areas (<a href="https://www.ers.usda.gov/data-products/rural-urban-commuting-area-codes" target="_blank" rel="noopener noreferrer">USDA ERS</a>).'
+    }
+  };
+
   const state = {
     geojson: null,
     assessmentsByGeoid: new Map(),
@@ -369,6 +432,7 @@
     stateBounds: new Map(),
     selectedState: "ALL",
     selectedGeoid: null,
+    activeMetric: "pct_pop_rural",
     minRural: 0,
     colorMode: "continuous",
     highlightMismatch: false,
@@ -379,7 +443,6 @@
     scatterGrade: "8"
   };
 
-  // Keyless Esri Light Gray Canvas basemap (avoids CARTO API key watermark)
   const map = L.map("map", { preferCanvas: true }).setView([39.5, -98.35], 4);
   L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}", {
     attribution: "Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ | NCES CCD, USDA ERS &amp; US Census",
@@ -414,8 +477,21 @@
     return Number.isFinite(n) ? n : NaN;
   }
 
-  // Parses exact schema emitted by 04_fetch_and_clean_assessments.R:
-  // { year, test_name, levels: [...], palette: [...], grades: { "3": { n, pct: [...], status, note } } }
+  function fmtPct(v) {
+    const n = toNum(v);
+    return !isNaN(n) ? `${n.toFixed(1)}%` : "N/A";
+  }
+
+  function fmtMiles(v) {
+    const n = toNum(v);
+    return !isNaN(n) ? `${n.toFixed(1)} mi` : "N/A";
+  }
+
+  function getMetricVal(p) {
+    const v = p[state.activeMetric];
+    return v != null ? toNum(v) : NaN;
+  }
+
   function extractGradeMath(rec, gradeNum) {
     if (!rec || !rec.grades) return null;
     const gd = rec.grades[String(gradeNum)];
@@ -447,7 +523,6 @@
       };
     }
 
-    // Proficient+ is the sum of Proficient and Advanced (indices 2 & 3 for 4-level; index 1 for 2-level)
     const profPlus = pcts.length === 4
       ? (pcts[2] + pcts[3])
       : (pcts.length >= 2 ? pcts[pcts.length - 1] : pcts[0]);
@@ -482,7 +557,8 @@
 
   function passesFilter(p) {
     if (state.selectedState !== "ALL" && p.state_abbr !== state.selectedState) return false;
-    if (state.minRural > 0 && (p.pct_pop_rural === null || p.pct_pop_rural < state.minRural)) return false;
+    const val = getMetricVal(p);
+    if (state.minRural > 0 && (isNaN(val) || val < state.minRural)) return false;
     return true;
   }
 
@@ -492,12 +568,13 @@
     const matched = passesFilter(p);
     const isSelected = p.GEOID === state.selectedGeoid;
     const isMismatch = state.highlightMismatch && p.locale_mismatch && inState;
+    const val = getMetricVal(p);
 
     if (!inState) {
       return { fillColor: "#cbd5e1", fillOpacity: 0.05, color: "#94a3b8", weight: 0.3 };
     }
     return {
-      fillColor: getColor(p.pct_pop_rural),
+      fillColor: getColor(val),
       fillOpacity: matched ? state.fillOpacity : 0.07,
       color: isSelected ? "#ef4444" : (isMismatch ? "#f59e0b" : "#334155"),
       weight: isSelected ? 2.4 : (isMismatch ? 1.8 : 0.45),
@@ -506,6 +583,10 @@
   }
 
   function refreshStyles() {
+    const meta = METRIC_META[state.activeMetric] || METRIC_META.pct_pop_rural;
+    document.getElementById("legendTitleText").textContent = meta.legendTitle;
+    document.getElementById("legendDefText").innerHTML = meta.legendDef;
+
     if (state.layer) state.layer.setStyle(styleFeature);
     updateSummaryKpis();
     updateLabels();
@@ -516,21 +597,23 @@
     const features = state.geojson.features.filter(f =>
       state.selectedState === "ALL" || f.properties.state_abbr === state.selectedState
     );
-    let validCount = 0, majRuralCount = 0, sumYouth = 0, sumRuralYouth = 0;
+    let validCount = 0, majRuralCount = 0, sumYouth = 0, sumMetricYouth = 0;
     for (const f of features) {
       const p = f.properties;
-      if (p.pct_pop_rural !== null && !isNaN(p.pct_pop_rural)) {
+      const val = getMetricVal(p);
+      const y517 = Number(p.est_total_pop_5_17 || 0);
+      if (!isNaN(val)) {
         validCount++;
-        if (p.pct_pop_rural >= 50) majRuralCount++;
+        if (val >= 50) majRuralCount++;
+        sumMetricYouth += y517 * (val / 100);
       }
-      sumYouth += Number(p.est_total_pop_5_17 || 0);
-      sumRuralYouth += Number(p.est_rural_pop_5_17 || 0);
+      sumYouth += y517;
     }
     const majPct = validCount > 0 ? ((100 * majRuralCount) / validCount).toFixed(1) : "0.0";
-    const youthShare = sumYouth > 0 ? ((100 * sumRuralYouth) / sumYouth).toFixed(1) : "0.0";
+    const youthShare = sumYouth > 0 ? ((100 * sumMetricYouth) / sumYouth).toFixed(1) : "0.0";
     document.getElementById("kpiDistricts").textContent = validCount.toLocaleString();
     document.getElementById("kpiMajRural").textContent = `${majRuralCount.toLocaleString()} (${majPct}%)`;
-    document.getElementById("kpiRuralYouth").textContent = `${Math.round(sumRuralYouth).toLocaleString()} (${youthShare}%)`;
+    document.getElementById("kpiRuralYouth").textContent = `${Math.round(sumMetricYouth).toLocaleString()} (${youthShare}%)`;
   }
 
   function clearLabels() {
@@ -584,7 +667,8 @@
       const pxH = Math.abs(se.y - nw.y);
       if (pxW < 44 || pxH < 18) continue;
 
-      const ruralBoost = state.prioritizeRural ? (0.4 + (Number(p.pct_pop_rural || 0) / 100)) : 1.0;
+      const metricVal = getMetricVal(p);
+      const ruralBoost = state.prioritizeRural ? (0.4 + ((isNaN(metricVal) ? 0 : metricVal) / 100)) : 1.0;
       candidates.push({
         p,
         pt: map.latLngToContainerPoint([p.label_lat, p.label_lon]),
@@ -824,6 +908,13 @@
       mmBox.classList.add("hidden");
     }
 
+    // Extension #3 Spatial Rurality & Remoteness Indicators
+    document.getElementById("dOutsideUa").textContent = fmtPct(p.pct_youth_outside_ua);
+    document.getElementById("dRucaRural").textContent = `${fmtPct(p.pct_youth_ruca_rural)} Rural (7–10)`;
+    document.getElementById("dRucaNonmetro").textContent = `Nonmetro (4–10): ${fmtPct(p.pct_youth_ruca_nonmetro)}`;
+    document.getElementById("dDistAnyUa").textContent = fmtMiles(p.dist_any_ua_mi);
+    document.getElementById("dDist50kUa").textContent = fmtMiles(p.dist_50k_ua_mi);
+
     document.getElementById("dEst517").textContent = tot517.toLocaleString();
     document.getElementById("dCcdEnroll").textContent = p.enrollment != null ? Number(p.enrollment).toLocaleString() : "N/A";
     document.getElementById("dDensity").textContent = p.weighted_mean_density != null ? `${Number(p.weighted_mean_density).toLocaleString()} / mi²` : "N/A";
@@ -863,15 +954,16 @@
     if (!state.geojson) return;
     const stFilter = state.selectedState;
     const gNum = state.scatterGrade;
+    const metricMeta = METRIC_META[state.activeMetric] || METRIC_META.pct_pop_rural;
     const titleScope = stFilter === "ALL" ? "All US Districts (Sampled ≤ 1,500)" : `${stFilter} School Districts`;
-    document.getElementById("modalTitle").textContent = `% Rural Students vs. Grade ${gNum} Math Proficiency — ${titleScope}`;
+    document.getElementById("modalTitle").textContent = `${metricMeta.shortLabel} vs. Grade ${gNum} Math — ${titleScope}`;
     document.getElementById("modalDownloadLink").style.display = "none";
 
     const pts = [];
     for (const f of state.geojson.features) {
       const p = f.properties;
       if (stFilter !== "ALL" && p.state_abbr !== stFilter) continue;
-      const xVal = toNum(p.pct_pop_rural);
+      const xVal = getMetricVal(p);
       if (isNaN(xVal)) continue;
       const rec = getAssessmentRecord(p.GEOID);
       const parsed = extractGradeMath(rec, gNum);
@@ -892,12 +984,12 @@
       const cx = pad + (d.x / 100) * (W - 2 * pad);
       const cy = H - pad - (d.y / 100) * (H - 2 * pad);
       const fill = d.x >= 50 ? "#2e6f40" : "#334155";
-      return `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="4.5" fill="${fill}" fill-opacity="0.75" stroke="#fff" stroke-width="0.7" style="cursor:pointer" onclick="selectFromScatter('${d.geoid}')"><title>${d.name} (${d.st}): ${d.x.toFixed(1)}% Rural | ${d.y.toFixed(1)}% G${gNum} Math Prof+ (${d.src})</title></circle>`;
+      return `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="4.5" fill="${fill}" fill-opacity="0.75" stroke="#fff" stroke-width="0.7" style="cursor:pointer" onclick="selectFromScatter('${d.geoid}')"><title>${d.name} (${d.st}): ${d.x.toFixed(1)}% (${metricMeta.shortLabel}) | ${d.y.toFixed(1)}% G${gNum} Math Prof+ (${d.src})</title></circle>`;
     }).join("");
 
     document.getElementById("modalBody").innerHTML = `
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px; font-size:12px; color:#475569;">
-        <span>Showing <strong>${sampled.length}</strong> districts with Grade ${gNum} math data (Rural cutoff: &lt;500 people/sq mi). Click any dot to zoom to district.</span>
+        <span>Showing <strong>${sampled.length}</strong> districts with Grade ${gNum} math data. Click any dot to zoom to district.</span>
         <div>
           <label for="scatterGradeSel" style="font-weight:700; color:#0f172a;">Grade: </label>
           <select id="scatterGradeSel" onchange="changeScatterGrade(this.value)" style="background:#f8fafc; color:#0f172a; border:1px solid #cbd5e1;">
@@ -911,10 +1003,10 @@
         <line x1="${pad}" y1="${H - pad}" x2="${W - pad}" y2="${H - pad}" stroke="#64748b" />
         <line x1="${pad}" y1="${pad}" x2="${pad}" y2="${H - pad}" stroke="#64748b" />
         <line x1="${pad + 0.5 * (W - 2 * pad)}" y1="${pad}" x2="${pad + 0.5 * (W - 2 * pad)}" y2="${H - pad}" stroke="#94a3b8" stroke-dasharray="4 4" />
-        <text x="${W / 2}" y="${H - 14}" text-anchor="middle" font-size="12" font-weight="700" fill="#0f172a">% Rural Students (Block-Dasymetric Ages 5–17; &lt;500/sq mi cutoff)</text>
+        <text x="${W / 2}" y="${H - 14}" text-anchor="middle" font-size="12" font-weight="700" fill="#0f172a">% Youth (Ages 5–17) — ${metricMeta.shortLabel}</text>
         <text x="16" y="${H / 2}" text-anchor="middle" font-size="12" font-weight="700" fill="#0f172a" transform="rotate(-90 16 ${H / 2})">Grade ${gNum} Math % Proficient or Above</text>
         <text x="${pad}" y="${H - pad + 16}" font-size="10" fill="#475569">0%</text>
-        <text x="${pad + 0.5 * (W - 2 * pad)}" y="${H - pad + 16}" text-anchor="middle" font-size="10" fill="#475569">50% (Majority Rural)</text>
+        <text x="${pad + 0.5 * (W - 2 * pad)}" y="${H - pad + 16}" text-anchor="middle" font-size="10" fill="#475569">50%</text>
         <text x="${W - pad}" y="${H - pad + 16}" text-anchor="end" font-size="10" fill="#475569">100%</text>
         <text x="${pad - 6}" y="${H - pad}" text-anchor="end" font-size="10" fill="#475569">0%</text>
         <text x="${pad - 6}" y="${pad + 4}" text-anchor="end" font-size="10" fill="#475569">100%</text>
@@ -982,10 +1074,11 @@
           const curB = state.stateBounds.get(p.state_abbr);
           state.stateBounds.set(p.state_abbr, curB ? curB.extend(layer.getBounds()) : L.latLngBounds(layer.getBounds()));
         }
-        layer.bindTooltip(
-          `<strong>${p.short_name || p.lea_name}</strong> (${p.state_abbr})<br/>% Rural Youth (5–17): <strong>${p.pct_pop_rural != null ? Number(p.pct_pop_rural).toFixed(1) + "%" : "N/A"}</strong> <span style="color:#64748b;">(&lt;500/mi² cutoff)</span><br/>Locale: ${p.urban_centric_locale_type || "N/A"}`,
-          { sticky: true }
-        );
+        layer.bindTooltip(() => {
+          const meta = METRIC_META[state.activeMetric] || METRIC_META.pct_pop_rural;
+          const val = getMetricVal(p);
+          return `<strong>${p.short_name || p.lea_name}</strong> (${p.state_abbr})<br/>${meta.shortLabel}: <strong>${!isNaN(val) ? val.toFixed(1) + "%" : "N/A"}</strong><br/>Locale: ${p.urban_centric_locale_type || "N/A"}`;
+        }, { sticky: true });
         layer.on("click", () => openDistrictDrawer(p.GEOID));
       }
     }).addTo(map);
@@ -996,6 +1089,11 @@
   }
 
   // Event Listeners
+  document.getElementById("metricSelect").addEventListener("change", e => {
+    state.activeMetric = e.target.value;
+    refreshStyles();
+  });
+
   document.getElementById("stateSelect").addEventListener("change", e => {
     state.selectedState = e.target.value;
     if (state.selectedState === "ALL") {
