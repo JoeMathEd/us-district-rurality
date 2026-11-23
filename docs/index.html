@@ -270,7 +270,7 @@
   <div class="map-overlay-card">
     <div class="legend-title">
       <span id="legendTitleText">% Rural Students (5–17)</span>
-      <span id="opacityLabel">82%</span>
+      <span id="opacityLabel">Opacity: 82%</span>
     </div>
     <div class="legend-def" id="legendDefText">
       <strong>Rural Threshold:</strong> Census tracts with <strong>&lt; 500 people / sq mi</strong> (<a href="https://www.ers.usda.gov/topics/rural-economy-population/rural-classifications/what-is-rural" target="_blank" rel="noopener noreferrer">USDA ERS</a> / <a href="https://www.census.gov/programs-surveys/geography/guidance/geo-areas/urban-rural.html" target="_blank" rel="noopener noreferrer">US Census</a>), block-weighted for ages 5–17.
@@ -1189,7 +1189,7 @@
 
   document.getElementById("opacitySlider").addEventListener("input", e => {
     state.fillOpacity = Number(e.target.value) / 100;
-    document.getElementById("opacityLabel").textContent = `${e.target.value}%`;
+    document.getElementById("opacityLabel").textContent = `Opacity: ${e.target.value}%`;
     refreshStyles();
   });
 
