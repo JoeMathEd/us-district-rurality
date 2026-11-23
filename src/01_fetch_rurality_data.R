@@ -1,7 +1,7 @@
 # 01_fetch_rurality_data.R
 # Determine the most recent common year across ACS, TIGER/Line, and NCES CCD,
-# fetch/cache annual datasets, and cache 2020 Decennial Census block interior points
-# for dasymetric school-aged population weighting (Extension #4).
+# fetch/cache annual datasets, cache 2020 Decennial Census block interior points,
+# and cache Census Urban Areas + USDA ERS 2020 RUCA tract codes (Extensions #3 & #4).
 # Author: Joe Champion, Boise State University
 
 args <- commandArgs(trailingOnly = TRUE)
@@ -35,8 +35,7 @@ state_fips <- tidycensus::fips_codes |>
   pull(state_code) |>
   unique()
 
-# 0. Ensure 2020 Decennial Census Block Interior Points Are Cached ----
-# Decennial blocks only update once per decade, so cache independently of annual ACS/CCD syncs
+# 0A. Ensure 2020 Decennial Census Block Interior Points Are Cached ----
 decennial_year <- 2020L
 blocks_path    <- file.path(cache_dir, paste0("decennial_block_points_", decennial_year, ".rds"))
 
@@ -74,12 +73,46 @@ if (!file.exists(blocks_path)) {
   message("Decennial block cache already exists: ", blocks_path)
 }
 
+# 0B. Ensure USDA ERS 2020 Tract RUCA Codes Are Cached (Extension #3) ----
+script_flag   <- grep("^--file=", commandArgs(trailingOnly = FALSE), value = TRUE)
+repo_root     <- if (length(script_flag) > 0) dirname(dirname(normalizePath(sub("^--file=", "", script_flag[1]), mustWork = FALSE))) else getwd()
+local_ruca    <- file.path(repo_root, "data_raw", "RUCA-codes-2020-tract.csv")
+ruca_path     <- file.path(cache_dir, "ruca_tracts_2020.rds")
+
+if (!file.exists(ruca_path) || isTRUE(force_sync)) {
+  if (!file.exists(local_ruca)) {
+    stop("Missing ", local_ruca, ". Commit data_raw/RUCA-codes-2020-tract.csv to the repository first.")
+  }
+  message("Parsing and caching USDA ERS 2020 RUCA tract codes from: ", local_ruca)
+  ruca_raw <- readr::read_csv(local_ruca, show_col_types = FALSE)
+  
+  geoid_col <- names(ruca_raw)[stringr::str_detect(tolower(names(ruca_raw)), "tract.*fips|fips.*tract|geoid")][1]
+  prim_col  <- names(ruca_raw)[stringr::str_detect(tolower(names(ruca_raw)), "primary.*ruca|ruca1")][1]
+  
+  if (is.na(geoid_col) || is.na(prim_col)) {
+    stop("Could not identify tract FIPS or primary RUCA columns in RUCA-codes-2020-tract.csv. Columns: ",
+         paste(names(ruca_raw), collapse = ", "))
+  }
+  
+  ruca_df <- ruca_raw |>
+    transmute(
+      tract_geoid  = stringr::str_pad(as.character(.data[[geoid_col]]), 11, pad = "0"),
+      ruca_primary = as.integer(.data[[prim_col]])
+    ) |>
+    filter(!is.na(tract_geoid), !is.na(ruca_primary)) |>
+    distinct(tract_geoid, .keep_all = TRUE)
+  
+  saveRDS(ruca_df, ruca_path)
+  message("Saved ", nrow(ruca_df), " 2020 RUCA tract records to: ", ruca_path)
+} else {
+  message("USDA ERS 2020 RUCA cache already exists: ", ruca_path)
+}
+
 # 1. Probe Most Recent Common Available Year ----
 current_yr <- as.integer(format(Sys.Date(), "%Y"))
 candidate_years <- seq(current_yr - 1L, 2020L, by = -1L)
 
 check_year_available <- function(yr) {
-  # Probe 1: ACS 5-year tract data (total pop + B09001 school-aged variables)
   acs_ok <- tryCatch({
     res <- suppressMessages(get_acs(
       geography = "tract",
@@ -92,7 +125,6 @@ check_year_available <- function(yr) {
   }, error = \(e) FALSE)
   if (!acs_ok) return(FALSE)
   
-  # Probe 2: TIGER/Line school districts (test using DC "11")
   tiger_ok <- tryCatch({
     res <- suppressMessages(school_districts(
       state = "11",
@@ -104,7 +136,6 @@ check_year_available <- function(yr) {
   }, error = \(e) FALSE)
   if (!tiger_ok) return(FALSE)
   
-  # Probe 3: NCES CCD directory (test DC 11 and OR 41 to confirm national availability)
   ccd_ok <- tryCatch({
     res <- suppressMessages(get_education_data(
       level = "school-districts",
@@ -134,10 +165,21 @@ if (is.na(year_this)) {
 message("Most recent common available year: ", year_this)
 
 # 2. Check Cache Manifest & Skip Annual Fetch if Up to Date ----
-tracts_path    <- file.path(cache_dir, paste0("tract_pops_raw_", year_this, ".rds"))
-districts_path <- file.path(cache_dir, paste0("districts_geo_raw_", year_this, ".rds"))
-nces_path      <- file.path(cache_dir, paste0("nces_ccd_raw_", year_this, ".rds"))
-manifest_path  <- file.path(cache_dir, "latest_cached_year.txt")
+tracts_path      <- file.path(cache_dir, paste0("tract_pops_raw_", year_this, ".rds"))
+districts_path   <- file.path(cache_dir, paste0("districts_geo_raw_", year_this, ".rds"))
+nces_path        <- file.path(cache_dir, paste0("nces_ccd_raw_", year_this, ".rds"))
+urban_areas_path <- file.path(cache_dir, paste0("urban_areas_raw_", year_this, ".rds"))
+manifest_path    <- file.path(cache_dir, "latest_cached_year.txt")
+
+# Ensure TIGER/Line Census Urban Areas are cached even if core annual files already exist
+if (!file.exists(urban_areas_path) || isTRUE(force_sync)) {
+  message("Fetching and caching TIGER/Line Census Urban Areas for ", year_this, "...")
+  urban_areas_raw <- suppressMessages(tigris::urban_areas(year = year_this, cb = FALSE, progress_bar = FALSE))
+  saveRDS(urban_areas_raw, urban_areas_path)
+  message("Saved ", nrow(urban_areas_raw), " Census Urban Areas to: ", urban_areas_path)
+  rm(urban_areas_raw)
+  gc()
+}
 
 cached_year <- if (file.exists(manifest_path)) {
   suppressWarnings(as.integer(trimws(readLines(manifest_path, n = 1, warn = FALSE))))
@@ -145,9 +187,8 @@ cached_year <- if (file.exists(manifest_path)) {
   NA_integer_
 }
 
-files_exist <- all(file.exists(c(tracts_path, districts_path, nces_path, blocks_path)))
+files_exist <- all(file.exists(c(tracts_path, districts_path, nces_path, blocks_path, urban_areas_path, ruca_path)))
 
-# Also verify cached tract file includes the B09001 age columns (upgraded schema)
 tracts_has_age_cols <- if (file.exists(tracts_path)) {
   "age_5E" %in% names(readRDS(tracts_path))
 } else {
@@ -155,7 +196,7 @@ tracts_has_age_cols <- if (file.exists(tracts_path)) {
 }
 
 if (!isTRUE(force_sync) && !is.na(cached_year) && cached_year == year_this && files_exist && tracts_has_age_cols) {
-  message("Cache is already up to date for year ", year_this, " (including B09001 ages 5-17 and decennial blocks). Skipping download.")
+  message("Cache is already up to date for year ", year_this, " (including B09001, decennial blocks, Urban Areas, and 2020 RUCA). Skipping download.")
   plan(sequential)
   quit(save = "no", status = 0)
 }
