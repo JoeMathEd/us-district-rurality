@@ -26,7 +26,6 @@ id_blocks <- readRDS(file.path(cache_dir, "decennial_block_points_2020.rds")) |>
   filter(state_fip == "16") |>
   st_transform(5070)
 
-# Map every Idaho 2020 block_geoid -> enclosing school district GEOID (exact block-level key for LODES8)
 blk_to_district <- st_join(
   id_blocks |> select(block_geoid, tract_geoid, blk_pop, blk_hu),
   districts_sf |> select(GEOID),
@@ -35,7 +34,6 @@ blk_to_district <- st_join(
 ) |>
   st_drop_geometry()
 
-# Compute tract-to-district dasymetric weights (reusing exact logic from 02a)
 tract_denoms <- id_blocks |>
   st_drop_geometry() |>
   group_by(tract_geoid) |>
@@ -68,7 +66,6 @@ fin_cache <- file.path(cache_dir, "idaho_edfinr_benchmark.rds")
 if (file.exists(fin_cache)) {
   id_fin_raw <- readRDS(fin_cache)
 } else {
-  # Probe latest available fiscal year in edfinr (typically lags directory by 1-2 yrs)
   id_fin_raw <- NULL
   for (fy in seq(year_this, 2020L, by = -1L)) {
     res <- tryCatch(
@@ -85,26 +82,27 @@ if (file.exists(fin_cache)) {
   saveRDS(id_fin_raw, fin_cache)
 }
 
-# Standardize key fiscal & cost-adjusted indicators
 id_fin_clean <- id_fin_raw |>
   mutate(GEOID = stringr::str_pad(as.character(ncesid), 7, pad = "0")) |>
   transmute(
     GEOID,
-    fin_year             = year,
-    fin_enroll           = enroll,
-    rev_total_pp         = rev_total_pp,
-    rev_local_pp         = rev_local_pp,
-    rev_state_pp         = rev_state_pp,
-    rev_fed_pp           = rev_fed_pp,
-    pct_rev_local        = if_else(rev_total > 0, 100 * rev_local / rev_total, NA_real_),
-    pct_rev_state        = if_else(rev_total > 0, 100 * rev_state / rev_total, NA_real_),
-    pct_rev_fed          = if_else(rev_total > 0, 100 * rev_fed / rev_total, NA_real_),
-    exp_curr_pp          = exp_curr_pp,
-    exp_inst_pp          = exp_inst_pp,
-    pct_exp_inst         = if_else(exp_curr > 0, 100 * exp_inst / exp_curr, NA_real_),
-    cwift_index          = if ("cwift" %in% names(id_fin_raw)) cwift else NA_real_,
-    exp_curr_cwift_pp    = if (!all(is.na(cwift_index))) exp_curr_pp / cwift_index else NA_real_,
-    saipe_child_pov_pct  = if ("child_pov_pct" %in% names(id_fin_raw)) child_pov_pct * 100 else NA_real_
+    fin_year            = year,
+    fin_enroll          = enroll,
+    rev_total_pp        = rev_total_pp,
+    rev_local_pp        = rev_local_pp,
+    rev_state_pp        = rev_state_pp,
+    rev_fed_pp          = rev_fed_pp,
+    pct_rev_local       = if_else(!is.na(rev_total) & rev_total > 0, 100 * rev_local / rev_total, NA_real_),
+    pct_rev_state       = if_else(!is.na(rev_total) & rev_total > 0, 100 * rev_state / rev_total, NA_real_),
+    pct_rev_fed         = if_else(!is.na(rev_total) & rev_total > 0, 100 * rev_fed / rev_total, NA_real_),
+    exp_cur_pp          = exp_cur_pp,
+    exp_cap_total_pp    = exp_cap_total_pp,
+    cwift_est           = cwift_est,
+    exp_cur_cwift_pp    = if_else(!is.na(cwift_est) & cwift_est > 0, exp_cur_pp / cwift_est, NA_real_),
+    saipe_stpov_pct     = if_else(!is.na(stpov_pct), stpov_pct * 100, NA_real_),
+    edfinr_mhi          = mhi,
+    edfinr_ba_plus_pct  = if_else(!is.na(ba_plus_pct), ba_plus_pct * 100, NA_real_),
+    edfinr_unemp_pct    = if_else(!is.na(unemp_rate), unemp_rate * 100, NA_real_)
   ) |>
   distinct(GEOID, .keep_all = TRUE)
 
@@ -125,7 +123,6 @@ if (file.exists(acs_econ_cache)) {
     lf_civ       = "B23025_003",
     lf_unemp     = "B23025_005",
     emp_total    = "C24030_001",
-    # Male + Female by NAICS Industry (C24030)
     ag_min_m     = "C24030_003", ag_min_f     = "C24030_030",
     const_m      = "C24030_006", const_f      = "C24030_033",
     mfg_m        = "C24030_007", mfg_f        = "C24030_034",
@@ -165,17 +162,17 @@ id_acs_econ_dist <- dasymetric_weights |>
   ) |>
   group_by(GEOID) |>
   summarize(
-    est_med_hh_inc      = weighted.mean(med_hh_inc, hh_total * dasymetric_prop, na.rm = TRUE),
-    acs_poverty_pct     = if_else(sum(pov_univ * dasymetric_prop) > 0,
-                                  100 * sum(pov_below * dasymetric_prop) / sum(pov_univ * dasymetric_prop), NA_real_),
-    acs_unemp_pct       = if_else(sum(lf_civ * dasymetric_prop) > 0,
-                                  100 * sum(lf_unemp * dasymetric_prop) / sum(lf_civ * dasymetric_prop), NA_real_),
-    res_pct_ag_mining   = if_else(sum(emp_total * dasymetric_prop) > 0,
-                                  100 * sum(emp_ag_mining * dasymetric_prop) / sum(emp_total * dasymetric_prop), NA_real_),
-    res_pct_mfg         = if_else(sum(emp_total * dasymetric_prop) > 0,
-                                  100 * sum(emp_mfg * dasymetric_prop) / sum(emp_total * dasymetric_prop), NA_real_),
-    res_pct_ed_hlth     = if_else(sum(emp_total * dasymetric_prop) > 0,
-                                  100 * sum(emp_ed_hlth * dasymetric_prop) / sum(emp_total * dasymetric_prop), NA_real_),
+    est_med_hh_inc    = weighted.mean(med_hh_inc, hh_total * dasymetric_prop, na.rm = TRUE),
+    acs_poverty_pct   = if_else(sum(pov_univ * dasymetric_prop) > 0,
+                                100 * sum(pov_below * dasymetric_prop) / sum(pov_univ * dasymetric_prop), NA_real_),
+    acs_unemp_pct     = if_else(sum(lf_civ * dasymetric_prop) > 0,
+                                100 * sum(lf_unemp * dasymetric_prop) / sum(lf_civ * dasymetric_prop), NA_real_),
+    res_pct_ag_mining = if_else(sum(emp_total * dasymetric_prop) > 0,
+                                100 * sum(emp_ag_mining * dasymetric_prop) / sum(emp_total * dasymetric_prop), NA_real_),
+    res_pct_mfg       = if_else(sum(emp_total * dasymetric_prop) > 0,
+                                100 * sum(emp_mfg * dasymetric_prop) / sum(emp_total * dasymetric_prop), NA_real_),
+    res_pct_ed_hlth   = if_else(sum(emp_total * dasymetric_prop) > 0,
+                                100 * sum(emp_ed_hlth * dasymetric_prop) / sum(emp_total * dasymetric_prop), NA_real_),
     .groups = "drop"
   )
 
@@ -188,7 +185,6 @@ lodes_cache <- file.path(cache_dir, "idaho_lodes8_benchmark.rds")
 if (file.exists(lodes_cache)) {
   lodes_list <- readRDS(lodes_cache)
 } else {
-  # Probe latest available LODES8 year (2024 or 2023)
   lodes_yr <- NA_integer_
   wac_raw  <- NULL
   for (yr in 2024:2021) {
@@ -212,7 +208,6 @@ if (file.exists(lodes_cache)) {
   saveRDS(lodes_list, lodes_cache)
 }
 
-# Aggregate Workplace Area Characteristics (WAC) directly by exact block_geoid -> district GEOID
 blk_key <- blk_to_district |> select(block_geoid, GEOID)
 
 lodes_wac_dist <- lodes_list$wac |>
@@ -231,7 +226,6 @@ lodes_wac_dist <- lodes_list$wac |>
     .groups = "drop"
   )
 
-# Compute District Commute Self-Containment from Origin-Destination (OD) flows
 od_mapped <- lodes_list$od_main |>
   mutate(
     h_blk = stringr::str_pad(as.character(h_geocode), 15, pad = "0"),
@@ -268,8 +262,8 @@ id_bench_12 |>
     n_dist               = n(),
     med_rev_total_pp     = round(median(rev_total_pp, na.rm = TRUE), 0),
     med_pct_rev_local    = round(median(pct_rev_local, na.rm = TRUE), 1),
-    med_exp_inst_pp      = round(median(exp_inst_pp, na.rm = TRUE), 0),
-    med_cwift            = round(median(cwift_index, na.rm = TRUE), 3),
+    med_exp_cur_pp       = round(median(exp_cur_pp, na.rm = TRUE), 0),
+    med_cwift            = round(median(cwift_est, na.rm = TRUE), 3),
     med_hh_inc           = round(median(est_med_hh_inc, na.rm = TRUE), 0),
     med_work_ag_min_pct  = round(median(work_pct_ag_for + work_pct_mining, na.rm = TRUE), 1),
     med_self_contain_pct = round(median(commute_self_contain_pct, na.rm = TRUE), 1),
@@ -280,7 +274,7 @@ id_bench_12 |>
 cat("\n=== CORRELATIONS WITH RURALITY & REMOTENESS (IDAHO, n=115) ===\n")
 id_bench_12 |>
   select(pct_pop_rural, pct_youth_outside_ua, dist_50k_ua_mi,
-         rev_total_pp, pct_rev_local, exp_inst_pp, cwift_index,
+         rev_total_pp, pct_rev_local, exp_cur_pp, cwift_est,
          est_med_hh_inc, acs_poverty_pct, work_pct_ag_for, commute_self_contain_pct) |>
   cor(use = "pairwise.complete.obs") |>
   round(3) |>
