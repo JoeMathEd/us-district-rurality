@@ -131,7 +131,7 @@
 
     /* Right-Hand District Profile Drawer */
     aside#drawer {
-      width: 395px; max-width: 92vw; background: var(--panel-bg);
+      width: 405px; max-width: 92vw; background: var(--panel-bg);
       border-left: 1px solid var(--border); height: 100%; overflow-y: auto;
       padding: 16px; display: flex; flex-direction: column; gap: 13px;
       box-shadow: -4px 0 16px rgba(15, 23, 42, 0.08); z-index: 950;
@@ -147,13 +147,13 @@
       background: linear-gradient(135deg, #0f172a 0%, #1e3a2f 100%);
       color: #f8fafc; border-radius: 10px; padding: 14px;
     }
-    .rural-hero-top { display: flex; justify-content: space-between; align-items: baseline; }
-    .rural-pct-big { font-size: 30px; font-weight: 800; color: #8fb996; }
-    .rural-tag { font-size: 11px; background: rgba(255,255,255,0.12); padding: 3px 8px; border-radius: 999px; }
+    .rural-hero-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+    .rural-pct-big { font-size: 23px; font-weight: 800; color: #8fb996; line-height: 1.15; }
+    .rural-tag { font-size: 11px; background: rgba(255,255,255,0.12); padding: 3px 8px; border-radius: 999px; white-space: nowrap; }
     .cutoff-callout {
       font-size: 11px; color: #dcfce7; background: rgba(34, 197, 94, 0.14);
       border: 1px solid rgba(134, 239, 172, 0.3); border-radius: 6px;
-      padding: 6px 8px; margin-top: 7px; line-height: 1.35;
+      padding: 6px 8px; margin-top: 8px; line-height: 1.35;
     }
     .cutoff-callout a { color: #86efac; font-weight: 600; }
     .pop-bar-wrap { margin-top: 10px; }
@@ -167,7 +167,7 @@
 
     .mismatch-banner {
       background: #fef3c7; border: 1px solid #f59e0b; color: #92400e;
-      border-radius: 8px; padding: 8px 10px; font-size: 11.5px; line-height: 1.35;
+      border-radius: 8px; padding: 9px 11px; font-size: 11.5px; line-height: 1.4;
     }
 
     .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -178,18 +178,13 @@
     .meta-box .val { font-size: 13.5px; font-weight: 700; margin-top: 2px; }
 
     /* Assessment Bars */
-    .section-title { font-size: 12.5px; font-weight: 700; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-    .source-tag { font-size: 10px; font-weight: 600; background: #e2e8f0; color: #334155; padding: 1px 6px; border-radius: 4px; }
+    .section-title { font-size: 12.5px; font-weight: 700; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+    .source-tag { font-size: 10px; font-weight: 600; background: #e2e8f0; color: #334155; padding: 2px 6px; border-radius: 4px; white-space: nowrap; }
     .grade-row { margin-bottom: 9px; }
     .grade-lbl { display: flex; justify-content: space-between; font-size: 11.5px; font-weight: 600; margin-bottom: 3px; }
     .assess-bar { height: 14px; border-radius: 4px; overflow: hidden; display: flex; background: #e2e8f0; }
-    .seg-bb { background: #dc2626; }
-    .seg-b  { background: #f59e0b; }
-    .seg-p  { background: #22c55e; }
-    .seg-a  { background: #15803d; }
-    .seg-np { background: #ef4444; }
     .suppressed-note { font-size: 11px; color: #64748b; background: #f1f5f9; padding: 4px 7px; border-radius: 4px; font-style: italic; }
-    .assess-legend { display: flex; flex-wrap: wrap; gap: 8px; font-size: 10.5px; color: var(--text-muted); margin-top: 4px; }
+    .assess-legend { display: flex; flex-wrap: wrap; gap: 8px; font-size: 10.5px; color: var(--text-muted); margin-top: 6px; }
     .assess-legend span { display: inline-flex; align-items: center; gap: 4px; }
     .dot { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
 
@@ -297,7 +292,7 @@
 
     <div class="rural-hero">
       <div class="rural-hero-top">
-        <div class="rural-pct-big" id="dPctRural">—%</div>
+        <div class="rural-pct-big" id="dPctRural">—% Rural Students</div>
         <span class="rural-tag" id="dLocaleBadge">NCES Locale</span>
       </div>
       <div class="cutoff-callout">
@@ -367,7 +362,7 @@
 <script>
   const state = {
     geojson: null,
-    assessments: {},
+    assessmentsByGeoid: new Map(),
     layer: null,
     layersByGeoid: new Map(),
     stateBounds: new Map(),
@@ -389,6 +384,84 @@
     attribution: "Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ | NCES CCD, USDA ERS &amp; US Census",
     maxZoom: 14
   }).addTo(map);
+
+  function indexAssessments(raw) {
+    state.assessmentsByGeoid.clear();
+    if (!raw || typeof raw !== "object") return;
+    for (const [k, v] of Object.entries(raw)) {
+      if (!v || typeof v !== "object") continue;
+      const cleanKey = String(k).trim();
+      const padded = /^\d+$/.test(cleanKey) ? cleanKey.padStart(7, "0") : cleanKey;
+      state.assessmentsByGeoid.set(padded, v);
+      state.assessmentsByGeoid.set(cleanKey, v);
+    }
+  }
+
+  function getAssessmentRecord(geoid) {
+    if (!geoid) return null;
+    const s = String(geoid).trim();
+    return state.assessmentsByGeoid.get(s)
+      || state.assessmentsByGeoid.get(s.padStart(7, "0"))
+      || state.assessmentsByGeoid.get(String(Number(s)))
+      || null;
+  }
+
+  function toNum(v) {
+    if (v === null || v === undefined || v === "" || typeof v === "boolean") return NaN;
+    if (typeof v === "number") return Number.isFinite(v) ? v : NaN;
+    const n = Number(String(v).replace(/[%\s,]/g, ""));
+    return Number.isFinite(n) ? n : NaN;
+  }
+
+  // Parses exact schema emitted by 04_fetch_and_clean_assessments.R:
+  // { year, test_name, levels: [...], palette: [...], grades: { "3": { n, pct: [...], status, note } } }
+  function extractGradeMath(rec, gradeNum) {
+    if (!rec || !rec.grades) return null;
+    const gd = rec.grades[String(gradeNum)];
+    if (!gd || typeof gd !== "object") return null;
+
+    const levels = Array.isArray(rec.levels) ? rec.levels : ["Not Proficient", "Proficient or Above"];
+    const palette = Array.isArray(rec.palette)
+      ? rec.palette
+      : (levels.length === 4 ? ["#dc2626", "#f59e0b", "#22c55e", "#15803d"] : ["#e07a5f", "#3d5a80"]);
+
+    if (!Array.isArray(gd.pct) || gd.pct.length === 0 || gd.status === "suppressed") {
+      return {
+        mode: "suppressed",
+        note: gd.note || "Assessment cohort suppressed for student privacy",
+        n: gd.n,
+        levels,
+        palette
+      };
+    }
+
+    const pcts = gd.pct.map(toNum);
+    if (pcts.some(v => isNaN(v)) || pcts.reduce((a, b) => a + b, 0) <= 0) {
+      return {
+        mode: "suppressed",
+        note: gd.note || "Assessment cohort suppressed for student privacy",
+        n: gd.n,
+        levels,
+        palette
+      };
+    }
+
+    // Proficient+ is the sum of Proficient and Advanced (indices 2 & 3 for 4-level; index 1 for 2-level)
+    const profPlus = pcts.length === 4
+      ? (pcts[2] + pcts[3])
+      : (pcts.length >= 2 ? pcts[pcts.length - 1] : pcts[0]);
+
+    return {
+      mode: "bars",
+      pcts,
+      levels,
+      palette,
+      profPlus,
+      n: gd.n,
+      status: gd.status || "exact",
+      note: gd.note || null
+    };
+  }
 
   function getColor(pct) {
     if (pct === null || pct === undefined || isNaN(pct)) return "#cbd5e1";
@@ -547,75 +620,12 @@
     }
   }
 
-  // Normalizes math_assessments.json across all possible key conventions from 04_fetch_and_clean_assessments.R
-  function extractGradeMath(rec, gradeNum) {
-    if (!rec) return null;
-    const gMap = rec.grades || rec;
-    const gd = gMap[`grade_${gradeNum}`] || gMap[String(gradeNum)] || gMap[`Grade ${gradeNum}`] || gMap[`g${gradeNum}`];
-    if (!gd || typeof gd !== "object") return null;
-
-    // 1. Check for levels array: [{ label: "Below Basic", pct: 21.4 }, ...]
-    if (Array.isArray(gd.levels) && gd.levels.length > 0) {
-      const byLbl = {};
-      for (const lv of gd.levels) {
-        const k = String(lv.label || lv.level || lv.name || "").toLowerCase().trim();
-        const v = Number(lv.pct ?? lv.percent ?? lv.value);
-        if (!isNaN(v)) byLbl[k] = v;
-      }
-      if (byLbl["below basic"] != null || byLbl["advanced"] != null) {
-        const bb = byLbl["below basic"] ?? 0;
-        const b  = byLbl["basic"] ?? 0;
-        const p  = byLbl["proficient"] ?? 0;
-        const a  = byLbl["advanced"] ?? 0;
-        if (bb + b + p + a > 0) {
-          return { mode: "4level", bb, b, p, a, profPlus: p + a, note: gd.privacy_note || gd.note || null };
-        }
-      }
-      if (byLbl["proficient or above"] != null || byLbl["proficient+"] != null) {
-        const profPlus = byLbl["proficient or above"] ?? byLbl["proficient+"];
-        const np = byLbl["not proficient"] ?? Math.max(0, 100 - profPlus);
-        return { mode: "2level", np, profPlus, note: gd.privacy_note || gd.note || null };
-      }
-    }
-
-    // 2. Check for flat 4-level properties (Idaho ISAT & Tier 2 state overrides)
-    const bbRaw = gd.below_basic ?? gd.pct_below_basic ?? gd.below_basic_pct;
-    const bRaw  = gd.basic ?? gd.pct_basic ?? gd.basic_pct;
-    const pRaw  = gd.proficient ?? gd.pct_proficient ?? gd.proficient_pct;
-    const aRaw  = gd.advanced ?? gd.pct_advanced ?? gd.advanced_pct;
-
-    if ([bbRaw, bRaw, pRaw, aRaw].some(v => v !== null && v !== undefined && !isNaN(Number(v)))) {
-      const bb = Number(bbRaw || 0);
-      const b  = Number(bRaw || 0);
-      const p  = Number(pRaw || 0);
-      const a  = Number(aRaw || 0);
-      if (bb + b + p + a > 0) {
-        return { mode: "4level", bb, b, p, a, profPlus: p + a, note: gd.privacy_note || gd.note || null };
-      }
-    }
-
-    // 3. Check for flat 2-level properties (Tier 1 EDFacts baseline)
-    const profRaw = gd.proficient_above ?? gd.pct_proficient_above ?? gd.proficient_or_above ?? gd.pct_proficient_or_above ?? gd.math_test_pct_prof_midpt;
-    if (profRaw !== null && profRaw !== undefined && !isNaN(Number(profRaw))) {
-      const profPlus = Number(profRaw);
-      const npRaw = gd.not_proficient ?? gd.pct_not_proficient;
-      const np = (npRaw !== null && npRaw !== undefined && !isNaN(Number(npRaw))) ? Number(npRaw) : Math.max(0, 100 - profPlus);
-      return { mode: "2level", np, profPlus, note: gd.privacy_note || gd.note || null };
-    }
-
-    // 4. Suppressed cohort with explicit note
-    if (gd.suppressed || gd.privacy_note || gd.note) {
-      return { mode: "suppressed", note: gd.privacy_note || gd.note || "Suppressed for student privacy" };
-    }
-    return null;
-  }
-
   function renderAssessmentBars(geoid) {
     const container = document.getElementById("dAssessContainer");
     const legend = document.getElementById("dAssessLegend");
     const srcTag = document.getElementById("dAssessSource");
 
-    const rec = state.assessments[geoid] || state.assessments[String(Number(geoid))];
+    const rec = getAssessmentRecord(geoid);
     if (!rec) {
       srcTag.textContent = "";
       container.innerHTML = "<em>No Grade 3/5/8 math assessment data available for this LEA.</em>";
@@ -623,50 +633,80 @@
       return;
     }
 
-    srcTag.textContent = rec.source || rec.tier || "";
+    const testLabel = rec.test_name || "Math Assessment";
+    const yrLabel = rec.year ? ` (${rec.year})` : "";
+    srcTag.textContent = `${testLabel}${yrLabel}`;
+
+    const levels = Array.isArray(rec.levels) ? rec.levels : ["Not Proficient", "Proficient or Above"];
+    const palette = Array.isArray(rec.palette)
+      ? rec.palette
+      : (levels.length === 4 ? ["#dc2626", "#f59e0b", "#22c55e", "#15803d"] : ["#e07a5f", "#3d5a80"]);
+
     let html = "";
-    let isFourLevel = false;
+    let hasAnyBar = false;
 
     for (const g of ["3", "5", "8"]) {
       const parsed = extractGradeMath(rec, g);
       if (!parsed) continue;
-      if (parsed.mode === "4level") {
-        isFourLevel = true;
+      const nBadge = parsed.n != null && !isNaN(Number(parsed.n)) ? ` (n=${Number(parsed.n).toLocaleString()})` : "";
+
+      if (parsed.mode === "bars") {
+        hasAnyBar = true;
+        const segments = parsed.pcts.map((val, idx) => {
+          const color = parsed.palette[idx] || "#64748b";
+          const lbl = parsed.levels[idx] || `Level ${idx + 1}`;
+          return `<div style="width:${val}%; background:${color}; height:100%;" title="${lbl}: ${val.toFixed(1)}%"></div>`;
+        }).join("");
+
+        const tooltipParts = parsed.pcts.map((val, idx) => `${parsed.levels[idx] || `L${idx + 1}`}: ${val.toFixed(1)}%`).join(" | ");
         html += `
           <div class="grade-row">
-            <div class="grade-lbl"><span>Grade ${g}</span><span>${parsed.profPlus.toFixed(1)}% Proficient+</span></div>
-            <div class="assess-bar" title="Below Basic: ${parsed.bb.toFixed(1)}% | Basic: ${parsed.b.toFixed(1)}% | Proficient: ${parsed.p.toFixed(1)}% | Advanced: ${parsed.a.toFixed(1)}%">
-              <div class="seg-bb" style="width:${parsed.bb}%"></div>
-              <div class="seg-b"  style="width:${parsed.b}%"></div>
-              <div class="seg-p"  style="width:${parsed.p}%"></div>
-              <div class="seg-a"  style="width:${parsed.a}%"></div>
+            <div class="grade-lbl">
+              <span>Grade ${g}<span style="font-weight:400; color:#64748b;">${nBadge}</span></span>
+              <span>${parsed.profPlus.toFixed(1)}% Proficient+</span>
             </div>
+            <div class="assess-bar" title="${tooltipParts}">${segments}</div>
           </div>`;
-      } else if (parsed.mode === "2level") {
+      } else {
         html += `
           <div class="grade-row">
-            <div class="grade-lbl"><span>Grade ${g}</span><span>${parsed.profPlus.toFixed(1)}% Proficient+</span></div>
-            <div class="assess-bar" title="Not Proficient: ${parsed.np.toFixed(1)}% | Proficient or Above: ${parsed.profPlus.toFixed(1)}%">
-              <div class="seg-np" style="width:${parsed.np}%"></div>
-              <div class="seg-p"  style="width:${parsed.profPlus}%"></div>
+            <div class="grade-lbl">
+              <span>Grade ${g}<span style="font-weight:400; color:#64748b;">${nBadge}</span></span>
+              <span style="color:#64748b;">Suppressed</span>
             </div>
-          </div>`;
-      } else if (parsed.mode === "suppressed") {
-        html += `
-          <div class="grade-row">
-            <div class="grade-lbl"><span>Grade ${g}</span><span style="color:#64748b;">Suppressed</span></div>
             <div class="suppressed-note">${parsed.note}</div>
           </div>`;
       }
     }
 
     container.innerHTML = html || "<em>No Grade 3/5/8 math cohorts reported for this district.</em>";
-    legend.innerHTML = isFourLevel
-      ? `<span><i class="dot seg-bb"></i>Below Basic</span><span><i class="dot seg-b"></i>Basic</span><span><i class="dot seg-p"></i>Proficient</span><span><i class="dot seg-a"></i>Advanced</span>`
-      : `<span><i class="dot seg-np"></i>Not Proficient</span><span><i class="dot seg-p"></i>Proficient or Above (EDFacts)</span>`;
+    if (!hasAnyBar) {
+      legend.innerHTML = "";
+    } else {
+      legend.innerHTML = levels.map((lbl, idx) =>
+        `<span><i class="dot" style="background:${palette[idx] || "#64748b"};"></i>${lbl}</span>`
+      ).join("") + `<span style="margin-left:auto; font-style:italic;">Source: ${testLabel}${yrLabel}</span>`;
+    }
   }
 
-  // Sync current state & district selection to URL query parameters (?state=ID&district=1600360)
+  function buildLocaleDivergenceText(p) {
+    const code = p.urban_centric_locale != null ? String(p.urban_centric_locale).trim() : "";
+    const type = p.urban_centric_locale_type ? String(p.urban_centric_locale_type).trim() : "Unknown";
+    const pct  = Number(p.pct_pop_rural);
+    const localeDesc = code ? `NCES Urban-Centric Locale Type ${code}: ${type}` : `NCES Urban-Centric Locale: ${type}`;
+
+    if (!isNaN(pct)) {
+      if (pct >= 50) {
+        return `${localeDesc}, but the district is majority-rural (>50% rural students at ${pct.toFixed(1)}%).`;
+      }
+      if (code.startsWith("4")) {
+        return `${localeDesc}, but fewer than half of school-aged youth (${pct.toFixed(1)}%) live in low-density tracts (<500 people/sq mi).`;
+      }
+      return `${localeDesc}, yet ${pct.toFixed(1)}% of school-aged youth live in rural low-density tracts (<500 people/sq mi).`;
+    }
+    return p.mismatch_reason ? `${localeDesc} — ${p.mismatch_reason}` : localeDesc;
+  }
+
   function syncUrlParams() {
     const params = new URLSearchParams(window.location.search);
     if (state.selectedState && state.selectedState !== "ALL") {
@@ -686,7 +726,6 @@
     window.history.replaceState(null, "", newUrl);
   }
 
-  // Apply ?state=... and ?district=... parameters on initial page load
   function applyUrlParams() {
     const params = new URLSearchParams(window.location.search);
     const stateParam = params.get("state");
@@ -758,7 +797,9 @@
     document.getElementById("dSub").textContent = `${p.state_name} (${p.state_abbr}) • NCES GEOID ${p.GEOID}`;
 
     const pct = p.pct_pop_rural;
-    document.getElementById("dPctRural").textContent = pct != null ? `${Number(pct).toFixed(1)}%` : "N/A";
+    document.getElementById("dPctRural").textContent = pct != null && !isNaN(Number(pct))
+      ? `${Number(pct).toFixed(1)}% Rural Students`
+      : "N/A Rural Students";
     document.getElementById("dLocaleBadge").textContent = p.urban_centric_locale_type || "Locale N/A";
 
     const tot517 = Number(p.est_total_pop_5_17 || 0);
@@ -774,8 +815,8 @@
       ? `National: ${p.nat_rural_pctl}th pctl` : "National: N/A";
 
     const mmBox = document.getElementById("dMismatchBox");
-    if (p.locale_mismatch && p.mismatch_reason) {
-      mmBox.textContent = `Locale Divergence: ${p.mismatch_reason}`;
+    if (p.locale_mismatch) {
+      mmBox.innerHTML = `<strong>Locale Divergence:</strong> ${buildLocaleDivergenceText(p)}`;
       mmBox.classList.remove("hidden");
     } else {
       mmBox.classList.add("hidden");
@@ -789,7 +830,6 @@
     renderAssessmentBars(p.GEOID);
   }
 
-  // Resolves active state: selected state dropdown -> selected district's state -> state at map center
   function resolveActiveState() {
     if (state.selectedState !== "ALL") {
       return { abbr: state.selectedState, source: "selected state filter" };
@@ -829,11 +869,19 @@
     for (const f of state.geojson.features) {
       const p = f.properties;
       if (stFilter !== "ALL" && p.state_abbr !== stFilter) continue;
-      if (p.pct_pop_rural == null || isNaN(Number(p.pct_pop_rural))) continue;
-      const rec = state.assessments[p.GEOID] || state.assessments[String(Number(p.GEOID))];
+      const xVal = toNum(p.pct_pop_rural);
+      if (isNaN(xVal)) continue;
+      const rec = getAssessmentRecord(p.GEOID);
       const parsed = extractGradeMath(rec, gNum);
-      if (!parsed || parsed.mode === "suppressed" || isNaN(parsed.profPlus)) continue;
-      pts.push({ geoid: p.GEOID, name: p.short_name || p.lea_name, st: p.state_abbr, x: Number(p.pct_pop_rural), y: parsed.profPlus });
+      if (!parsed || parsed.mode !== "bars" || isNaN(parsed.profPlus)) continue;
+      pts.push({
+        geoid: p.GEOID,
+        name: p.short_name || p.lea_name,
+        st: p.state_abbr,
+        x: xVal,
+        y: parsed.profPlus,
+        src: rec.test_name || "Math"
+      });
     }
 
     const sampled = pts.length > 1500 ? pts.filter((_, i) => i % Math.ceil(pts.length / 1500) === 0) : pts;
@@ -842,7 +890,7 @@
       const cx = pad + (d.x / 100) * (W - 2 * pad);
       const cy = H - pad - (d.y / 100) * (H - 2 * pad);
       const fill = d.x >= 50 ? "#2e6f40" : "#334155";
-      return `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="4.5" fill="${fill}" fill-opacity="0.75" stroke="#fff" stroke-width="0.7" style="cursor:pointer" onclick="selectFromScatter('${d.geoid}')"><title>${d.name} (${d.st}): ${d.x.toFixed(1)}% Rural | ${d.y.toFixed(1)}% G${gNum} Math Prof+</title></circle>`;
+      return `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="4.5" fill="${fill}" fill-opacity="0.75" stroke="#fff" stroke-width="0.7" style="cursor:pointer" onclick="selectFromScatter('${d.geoid}')"><title>${d.name} (${d.st}): ${d.x.toFixed(1)}% Rural | ${d.y.toFixed(1)}% G${gNum} Math Prof+ (${d.src})</title></circle>`;
     }).join("");
 
     document.getElementById("modalBody").innerHTML = `
@@ -895,7 +943,10 @@
       fetch(`data/rurality_meta.json${cacheBust}`).catch(() => null)
     ]);
     state.geojson = await geoRes.json();
-    if (assessRes && assessRes.ok) state.assessments = await assessRes.json();
+    if (assessRes && assessRes.ok) {
+      const rawAssess = await assessRes.json();
+      indexAssessments(rawAssess);
+    }
     if (metaRes && metaRes.ok) {
       const meta = await metaRes.json();
       document.getElementById("methodBadge").textContent = `Block-Dasymetric Ages 5–17 (${meta.data_year})`;
