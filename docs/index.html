@@ -194,11 +194,19 @@
 
     .section-title-btn {
       background: none; border: none; padding: 0; color: var(--text-main);
-      font-size: 12.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;
+      font-size: 12.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;
       text-align: left; cursor: pointer;
     }
-    .section-title-btn:hover { color: #15803d; background: none; text-decoration: underline; }
-    .section-title-hint { font-size: 10.5px; font-weight: 600; color: #15803d; text-decoration: underline; }
+    .section-title-btn:hover { color: #1d4ed8; background: none; }
+    .section-title-btn:hover .info-i-icon { background: #1d4ed8; transform: scale(1.06); }
+    .info-i-icon {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 15px; height: 15px; border-radius: 50%;
+      background: #2563eb; color: #fff;
+      font-family: Georgia, "Times New Roman", serif;
+      font-style: italic; font-weight: 700; font-size: 10.5px; line-height: 1;
+      flex-shrink: 0; transition: background 0.15s, transform 0.15s;
+    }
     .ruca-sub-note { font-size: 10px; color: #64748b; margin-top: 2px; line-height: 1.25; }
 
     /* Assessment Bars */
@@ -374,7 +382,7 @@
       <div class="section-title">
         <button type="button" class="section-title-btn" onclick="openMetricsGuide('rurality')" title="Open Rurality & Remoteness methodology guide">
           <span>Spatial Rurality &amp; Remoteness Indicators</span>
-          <span class="section-title-hint">Guide</span>
+          <span class="info-i-icon" aria-label="Info">i</span>
         </button>
         <span class="source-tag">Census &amp; USDA ERS</span>
       </div>
@@ -426,7 +434,7 @@
       <div class="section-title">
         <button type="button" class="section-title-btn" onclick="openMetricsGuide('finance')" title="Open Finance & CWIFT methodology guide">
           <span>District Finance &amp; Local Economy</span>
-          <span class="section-title-hint">Guide</span>
+          <span class="info-i-icon" aria-label="Info">i</span>
         </button>
         <span class="source-tag" id="dEconSource">F-33 / CWIFT &amp; ACS / LODES8</span>
       </div>
@@ -468,7 +476,7 @@
       <div class="section-title">
         <button type="button" class="section-title-btn" onclick="openMetricsGuide('math')" title="Open Math Proficiency methodology guide">
           <span>Grade 3, 5 &amp; 8 Math Proficiency</span>
-          <span class="section-title-hint">Guide</span>
+          <span class="info-i-icon" aria-label="Info">i</span>
         </button>
         <span class="source-tag" id="dAssessSource"></span>
       </div>
