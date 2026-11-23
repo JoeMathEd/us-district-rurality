@@ -2,8 +2,8 @@
 #SBATCH --job-name=analyze_rurality
 #SBATCH --partition=bsudfq
 #SBATCH --cpus-per-task=16
-#SBATCH --mem=32G
-#SBATCH --time=00:30:00
+#SBATCH --mem=48G
+#SBATCH --time=00:45:00
 #SBATCH --output=/bsuscratch/%u/district-rurality/logs/02_analyze_%j.out
 
 source /etc/profile

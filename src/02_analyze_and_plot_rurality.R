@@ -121,25 +121,40 @@ if (!isTRUE(recompute_spatial) && file.exists(spatial_checkpoint_path)) {
     select(GEOID, state_fip, district_name, district_area_mi2)
   
   # 4. Calculate Block-Dasymetric Tract-to-District Weights (Parallelized) ----
+  # 4. Calculate Block-Dasymetric Tract-to-District Weights (Memory-Safe Parallelized) ----
   message("Computing state-by-state block-dasymetric tract-to-district apportionments...")
-  state_fips <- unique(districts_clean$state_fip)
+  
+  # Pre-split blocks and districts by state_fip so furrr only ships 1 state per worker
+  blocks_by_state    <- split(decennial_block_points, decennial_block_points$state_fip)
+  districts_by_state <- split(districts_clean |> select(GEOID, district_name), districts_clean$state_fip)
+  
+  # Remove the 8.1M-row national object before forking workers
+  rm(decennial_block_points)
+  gc()
+  
+  # Order largest block-count states first to avoid tail latency
+  state_fips <- names(districts_by_state)
+  blk_counts <- vapply(state_fips, \(f) if (!is.null(blocks_by_state[[f]])) nrow(blocks_by_state[[f]]) else 0L, integer(1))
+  state_fips <- state_fips[order(blk_counts, decreasing = TRUE)]
+  
+  state_tasks <- map(state_fips, \(fip) list(
+    blk  = blocks_by_state[[fip]],
+    dist = districts_by_state[[fip]]
+  ))
   
   dasymetric_pieces <- future_map(
-    state_fips,
-    \(fip) {
-      blk_sub  <- decennial_block_points |> filter(state_fip == fip)
-      dist_sub <- districts_clean |> filter(state_fip == fip) |> select(GEOID, district_name)
+    state_tasks,
+    \(task) {
+      blk_sub  <- task$blk
+      dist_sub <- task$dist
       
-      if (nrow(blk_sub) == 0 || nrow(dist_sub) == 0) return(NULL)
+      if (is.null(blk_sub) || is.null(dist_sub) || nrow(blk_sub) == 0 || nrow(dist_sub) == 0) return(NULL)
       
-      # Point-in-polygon assignment of block interior points to school districts
-      # (Note: in dual elementary/secondary systems, a block point matches both overlapping districts)
       joined <- st_join(blk_sub, dist_sub, join = st_within, left = FALSE) |>
         st_drop_geometry()
       
       if (nrow(joined) == 0) return(NULL)
       
-      # Compute within-tract block shares using ALL blocks in the tract as denominator
       tract_denoms <- blk_sub |>
         st_drop_geometry() |>
         group_by(tract_geoid) |>
@@ -172,6 +187,9 @@ if (!isTRUE(recompute_spatial) && file.exists(spatial_checkpoint_path)) {
       est_piece_pop_5_17 = pop_5_17 * dasymetric_prop,
       est_piece_pop      = total_pop * dasymetric_prop
     )
+  
+  rm(blocks_by_state, districts_by_state, state_tasks)
+  gc()
   
   # 5. Summarize District-Level Rural Serving Metrics (School-Aged 5-17 Primary) ----
   districts_rural_summary <- dasymetric_pieces |>
