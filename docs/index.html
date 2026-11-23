@@ -354,8 +354,8 @@
   };
 
   const map = L.map("map", { preferCanvas: true }).setView([39.5, -98.35], 4);
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png", {
-    attribution: "&copy; OpenStreetMap &copy; CARTO | NCES CCD & US Census",
+  L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}", {
+    attribution: "Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ | NCES CCD &amp; US Census",
     maxZoom: 14
   }).addTo(map);
 
