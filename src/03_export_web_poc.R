@@ -6,7 +6,9 @@ library(sf)
 library(dplyr)
 library(stringr)
 
-source("src/utils/district_name_helpers.R")
+script_flag <- grep("^--file=", commandArgs(trailingOnly = FALSE), value = TRUE)
+script_dir  <- if (length(script_flag) > 0) dirname(sub("^--file=", "", script_flag[1])) else "src"
+source(file.path(script_dir, "utils", "district_name_helpers.R"))
 
 args <- commandArgs(trailingOnly = TRUE)
 cache_dir <- if (length(args) >= 1) args[1] else "data_cache"

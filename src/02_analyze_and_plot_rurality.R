@@ -255,8 +255,9 @@ if (!isTRUE(recompute_spatial) && file.exists(spatial_checkpoint_path)) {
 }
 
 # 8. Visualize Percent Rural by State (Parallelized) ----
-# 8. Visualize Percent Rural by State (Parallelized) ----
-source(file.path(dirname(sys.frame(1)$ofile %||% "src/02_analyze_and_plot_rurality.R"), "utils", "district_name_helpers.R"))
+script_flag <- grep("^--file=", commandArgs(trailingOnly = FALSE), value = TRUE)
+script_dir  <- if (length(script_flag) > 0) dirname(sub("^--file=", "", script_flag[1])) else "src"
+source(file.path(script_dir, "utils", "district_name_helpers.R"))
 
 districts_complete_sf <- districts_complete_sf |>
   mutate( short_name = clean_district_name(lea_name, district_name) )
