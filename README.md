@@ -8,10 +8,10 @@
 
 <p align="center">
   <a href="https://joemathed.github.io/us-district-rurality/">
-    <img src="docs/maps/labeled/id.png" alt="Estimated Percentage of Rural Students Across Idaho School Districts (300 DPI Labeled Choropleth)" width="78%" />
+    <img src="docs/assets/us-district-rurality.gif" alt="Animated Preview of US School District Rurality Explorer" width="78%" />
   </a>
   <br />
-  <em>Example state-level output: Block-dasymetric share of school-aged youth (ages 5–17) in low-density census tracts (&lt; 500 people/sq mi) across Idaho's geographically bounded school districts. <a href="https://joemathed.github.io/us-district-rurality/">Explore all 50 states + DC interactively &rarr;</a></em>
+  <em>Example interactive exploration of rurality indicators for US school districts. <a href="https://joemathed.github.io/us-district-rurality/">Explore all 50 states + DC interactively &rarr;</a></em>
 </p>
 
 ---
