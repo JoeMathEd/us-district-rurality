@@ -63,6 +63,25 @@
     button { cursor: pointer; font-weight: 600; transition: background 0.15s; }
     button:hover { background: #334155; }
     button.active { background: #2e6f40; border-color: #4ade80; color: #fff; }
+    
+    .github-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      border-radius: 6px;
+      border: 1px solid #475569;
+      padding: 5px 9px;
+      background: #1e293b;
+      color: #f8fafc;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .github-link:hover {
+      background: #334155;
+      border-color: #94a3b8;
+    }
 
     /* Sub-header Rurality Filter & Live Stats Strip */
     .filter-strip {
@@ -280,6 +299,15 @@
     <button id="btnShareLink" title="Copy direct link to current state/district view">Copy Link</button>
     <button id="btnScatter" title="Plot Rurality Metric vs Math Proficiency">Rurality × Math Plot</button>
     <button id="btnStatePng" title="View 300 DPI State Map">300 DPI state map</button>
+    <a
+  class="github-link"
+  href="https://github.com/JoeMathEd/us-district-rurality"
+  target="_blank"
+  rel="noopener noreferrer"
+  title="View source code, data pipeline, and documentation on GitHub"
+>
+  GitHub Repo ↗
+</a>
   </div>
 </header>
 
