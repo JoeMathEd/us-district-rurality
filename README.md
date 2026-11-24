@@ -1,6 +1,6 @@
 # US School District Rurality & Math Achievement Explorer
 
-**Block-Dasymetric Demographic, Spatial Remoteness, Fiscal & Economic Analysis Across ~13,300 US Public School Districts**
+**Block-Dasymetric Demographic, Spatial Remoteness, Fiscal & Economic Analysis for ~13,300 US Public School Districts**
 
 [**Launch Interactive Map**](https://joemathed.github.io/us-district-rurality/) · [**Methodology & Validation**](#-methodology--validation-benchmarks) · [**Repository Structure**](#-repository-architecture) · [**Run on HPC**](#-borah-hpc--slurm-execution) · [**Cite This Project**](#-citation)
 
