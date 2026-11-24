@@ -387,44 +387,45 @@
       </div>
       <div class="meta-grid">
         <div class="meta-box">
-          <div class="lbl">Outside Census Urban Area</div>
+          <div class="lbl">Outside Urban Areas</div>
           <div class="val" id="dOutsideUa">—</div>
-          <div class="sub">Youth in non-UA blocks</div>
+          <div class="sub">Youth outside Census urban clusters/cities</div>
         </div>
         <div class="meta-box">
-          <div class="lbl">USDA ERS 2020 RUCA</div>
+          <div class="lbl">Commuting Rurality (RUCA)</div>
           <div class="val" id="dRucaRural">—</div>
-          <div class="sub" id="dRucaNonmetro">Nonmetro (4–10): —</div>
-          <div class="ruca-sub-note" id="dRucaTownMicro">Town/Micro (4–6): —</div>
+          <div class="sub" id="dRucaNonmetro">Outside metro commuting (4–10): —</div>
+          <div class="ruca-sub-note" id="dRucaTownMicro">Small town/micropolitan (4–6): —</div>
         </div>
         <div class="meta-box">
-          <div class="lbl">Dist. to Any Urban Area</div>
+          <div class="lbl">Nearest Urban Area</div>
           <div class="val" id="dDistAnyUa">—</div>
-          <div class="sub">Pop.-weighted centroid</div>
+          <div class="sub">Miles from pop. center to any urban area</div>
         </div>
         <div class="meta-box">
-          <div class="lbl">Dist. to ≥50k Urban Core</div>
+          <div class="lbl">Nearest City (50k+ Pop.)</div>
           <div class="val" id="dDist50kUa">—</div>
-          <div class="sub">Urbanized Area remoteness</div>
+          <div class="sub">Miles from pop. center to 50k+ urban core</div>
         </div>
       </div>
     </div>
 
     <div class="meta-grid">
       <div class="meta-box">
-        <div class="lbl">Est. Youth (Ages 5–17)</div>
+        <div class="lbl">School-Age Kids (5–17)</div>
         <div class="val" id="dEst517">—</div>
       </div>
       <div class="meta-box">
-        <div class="lbl">CCD Public Enrollment</div>
+        <div class="lbl">Public School Enrollment</div>
         <div class="val" id="dCcdEnroll">—</div>
       </div>
       <div class="meta-box">
-        <div class="lbl">Weighted Tract Density</div>
+        <div class="lbl">Avg. Pop. Density</div>
         <div class="val" id="dDensity">—</div>
+        <div class="sub">Youth-weighted (people / sq mi)</div>
       </div>
       <div class="meta-box">
-        <div class="lbl">District Area / Schools</div>
+        <div class="lbl">Land Area &amp; Schools</div>
         <div class="val" id="dAreaSchools">—</div>
       </div>
     </div>
@@ -439,34 +440,34 @@
       </div>
       <div class="econ-grid">
         <div class="econ-box">
-          <div class="lbl">Rev / Pupil</div>
+          <div class="lbl">Revenue per Student</div>
           <div class="val" id="dRevTotalPp">—</div>
-          <div class="sub" id="dPctRevLocal">Local share: —</div>
+          <div class="sub" id="dPctRevLocal">From local taxes/fees: —</div>
         </div>
         <div class="econ-box">
-          <div class="lbl">Current Exp / Pupil</div>
+          <div class="lbl">Operating Spend / Student</div>
           <div class="val" id="dExpCurPp">—</div>
-          <div class="sub" id="dExpCwiftPp">CWIFT-adj: —</div>
+          <div class="sub" id="dExpCwiftPp">Wage-cost adjusted: —</div>
         </div>
         <div class="econ-box">
-          <div class="lbl">CWIFT Index</div>
+          <div class="lbl">Teacher Wage Index (CWIFT)</div>
           <div class="val" id="dCwiftEst">—</div>
-          <div class="sub" id="dSaipePov">SAIPE child pov.: —</div>
+          <div class="sub" id="dSaipePov">Est. child poverty (SAIPE): —</div>
         </div>
         <div class="econ-box">
-          <div class="lbl">Est. Med. HH Income</div>
+          <div class="lbl">Median Household Income</div>
           <div class="val" id="dMedHhInc">—</div>
-          <div class="sub" id="dAcsPov">ACS poverty: —</div>
+          <div class="sub" id="dAcsPov">Overall poverty rate: —</div>
         </div>
         <div class="econ-box">
-          <div class="lbl">Ag / Forestry Jobs</div>
+          <div class="lbl">Local Ag &amp; Forestry Jobs</div>
           <div class="val" id="dWorkAgFor">—</div>
-          <div class="sub" id="dResAgMin">Res. Ag/Min: —</div>
+          <div class="sub" id="dResAgMin">Residents in ag/mining: —</div>
         </div>
         <div class="econ-box">
-          <div class="lbl">Commute Self-Contain.</div>
+          <div class="lbl">Live &amp; Work Locally</div>
           <div class="val" id="dCommuteStay">—</div>
-          <div class="sub" id="dWorkMfg">Mfg jobs (WAC): —</div>
+          <div class="sub" id="dWorkMfg">Local manufacturing jobs: —</div>
         </div>
       </div>
     </div>
@@ -995,22 +996,22 @@
 
   function updateFinanceEconomyCard(p) {
     document.getElementById("dRevTotalPp").textContent = fmtCurrency(p.rev_total_pp);
-    document.getElementById("dPctRevLocal").textContent = `Local share: ${fmtPct(p.pct_rev_local)}`;
+    document.getElementById("dPctRevLocal").textContent = `From local taxes/fees: ${fmtPct(p.pct_rev_local)}`;
 
     document.getElementById("dExpCurPp").textContent = fmtCurrency(p.exp_cur_pp);
-    document.getElementById("dExpCwiftPp").textContent = `CWIFT-adj: ${fmtCurrency(p.exp_cur_cwift_pp)}`;
+    document.getElementById("dExpCwiftPp").textContent = `Wage-cost adjusted: ${fmtCurrency(p.exp_cur_cwift_pp)}`;
 
     document.getElementById("dCwiftEst").textContent = fmtIndex(p.cwift_est, 3);
-    document.getElementById("dSaipePov").textContent = `SAIPE child pov.: ${fmtPct(p.saipe_stpov_pct)}`;
+    document.getElementById("dSaipePov").textContent = `Est. child poverty (SAIPE): ${fmtPct(p.saipe_stpov_pct)}`;
 
     document.getElementById("dMedHhInc").textContent = fmtCurrency(p.est_med_hh_inc);
-    document.getElementById("dAcsPov").textContent = `ACS poverty: ${fmtPct(p.acs_poverty_pct)}`;
+    document.getElementById("dAcsPov").textContent = `Overall poverty rate: ${fmtPct(p.acs_poverty_pct)}`;
 
     document.getElementById("dWorkAgFor").textContent = fmtPct(p.work_pct_ag_for);
-    document.getElementById("dResAgMin").textContent = `Res. Ag/Min: ${fmtPct(p.res_pct_ag_mining)}`;
+    document.getElementById("dResAgMin").textContent = `Residents in ag/mining: ${fmtPct(p.res_pct_ag_mining)}`;
 
     document.getElementById("dCommuteStay").textContent = fmtPct(p.commute_self_contain_pct);
-    document.getElementById("dWorkMfg").textContent = `Mfg jobs (WAC): ${fmtPct(p.work_pct_mfg)}`;
+    document.getElementById("dWorkMfg").textContent = `Local manufacturing jobs: ${fmtPct(p.work_pct_mfg)}`;
   }
 
   function openDistrictDrawer(geoid) {
@@ -1029,7 +1030,7 @@
     document.getElementById("dPctRural").textContent = pct != null && !isNaN(Number(pct))
       ? `${Number(pct).toFixed(1)}% Rural Students`
       : "N/A Rural Students";
-    document.getElementById("dLocaleBadge").textContent = p.urban_centric_locale_type || "Locale N/A";
+    document.getElementById("dLocaleBadge").textContent = p.urban_centric_locale_type ? `Locale: ${p.urban_centric_locale_type}` : "NCES Locale N/A";
 
     const tot517 = Number(p.est_total_pop_5_17 || 0);
     const rur517 = Number(p.est_rural_pop_5_17 || 0);
@@ -1039,9 +1040,9 @@
     document.getElementById("dUrbanYouthCount").textContent = `Non-Rural Youth: ${urb517.toLocaleString()}`;
 
     document.getElementById("dStatePctl").textContent = p.state_rural_pctl != null
-      ? `More rural than ${p.state_rural_pctl}% of ${p.state_abbr} districts` : "State Rank: N/A";
+      ? `State: ${p.state_rural_pctl}th pct rural (more rural than ${p.state_rural_pctl}%)` : "State Rank: N/A";
     document.getElementById("dNatPctl").textContent = p.nat_rural_pctl != null
-      ? `National: ${p.nat_rural_pctl}th pctl` : "National: N/A";
+      ? `US: ${p.nat_rural_pctl}th pct rural` : "National: N/A";
 
     const mmBox = document.getElementById("dMismatchBox");
     if (p.locale_mismatch) {
@@ -1059,18 +1060,18 @@
     const rucaTownMicroNum = (!isNaN(rucaNonmetroNum) && !isNaN(rucaRuralNum))
       ? Math.max(0, rucaNonmetroNum - rucaRuralNum)
       : NaN;
-    document.getElementById("dRucaRural").textContent = `${fmtPct(p.pct_youth_ruca_rural)} Rural (7–10)`;
-    document.getElementById("dRucaNonmetro").textContent = `Nonmetro (4–10): ${fmtPct(p.pct_youth_ruca_nonmetro)}`;
+    document.getElementById("dRucaRural").textContent = `${fmtPct(p.pct_youth_ruca_rural)} in small/remote rural tracts`;
+    document.getElementById("dRucaNonmetro").textContent = `Outside metro commuting (4–10): ${fmtPct(p.pct_youth_ruca_nonmetro)}`;
     document.getElementById("dRucaTownMicro").textContent = !isNaN(rucaTownMicroNum)
-      ? `Town/Micro (4–6): ${rucaTownMicroNum.toFixed(1)}%`
-      : "Town/Micro (4–6): N/A";
+      ? `Small town/micropolitan (4–6): ${rucaTownMicroNum.toFixed(1)}%`
+      : "Small town/micropolitan (4–6): N/A";
     document.getElementById("dDistAnyUa").textContent = fmtMiles(p.dist_any_ua_mi);
     document.getElementById("dDist50kUa").textContent = fmtMiles(p.dist_50k_ua_mi);
 
     document.getElementById("dEst517").textContent = tot517.toLocaleString();
     document.getElementById("dCcdEnroll").textContent = p.enrollment != null ? Number(p.enrollment).toLocaleString() : "N/A";
     document.getElementById("dDensity").textContent = p.weighted_mean_density != null ? `${Number(p.weighted_mean_density).toLocaleString()} / mi²` : "N/A";
-    document.getElementById("dAreaSchools").textContent = `${p.area_mi2 ?? "—"} mi² • ${p.number_of_schools ?? "—"} sch`;
+    document.getElementById("dAreaSchools").textContent = `${p.area_mi2 ?? "—"} sq mi • ${p.number_of_schools ?? "—"} schools`;
 
     updateFinanceEconomyCard(p);
     renderAssessmentBars(p.GEOID);
